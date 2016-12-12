@@ -1,4 +1,4 @@
-# PIX Internals
+# pix internals
 
 ## Process tree
     + init
@@ -6,7 +6,7 @@
         + pash: shell
       + tcp: tcp server
       + telnet: telnet server application
-      + fe: forwarding engine integrated driver server
+      + fe: forwarding engine integrated driver server (running at ring 3, but no memory protection)
 
 ## Kernel internals
 * timer
@@ -18,7 +18,7 @@
 ## Drivers
 * tty
   * console: keyboard + video
-  * serial (UART)
+  * serial (UART/RS-232C)
 
 ## Servers
 * pm: process manager
