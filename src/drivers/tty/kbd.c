@@ -545,9 +545,6 @@ kbd_getchar(struct kbd *kbd, struct driver_mapped_device *dev)
     if ( scan_code == KBD_KEY_F4 ) {
         sysdebug(3);
     }
-    if ( scan_code == 0x01 ) {
-        kbd_power_reset();
-    }
 
     driver_interrupt(dev);
 
