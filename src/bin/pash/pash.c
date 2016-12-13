@@ -170,12 +170,18 @@ pash_register_module(struct pash *pash, const char *name,
     return 0;
 }
 
+/*
+ * Clear
+ */
 int
 pash_builtin_clear(struct pash *pash, char *args[])
 {
     return 0;
 }
 
+/*
+ * Help
+ */
 int
 pash_builtin_help(struct pash *pash, char *args[])
 {
@@ -190,6 +196,9 @@ pash_builtin_help(struct pash *pash, char *args[])
     return 0;
 }
 
+/*
+ * Request
+ */
 int
 pash_builtin_request(struct pash *pash, char *args[])
 {
@@ -198,6 +207,10 @@ pash_builtin_request(struct pash *pash, char *args[])
 
     /* Get the second argument for the module name */
     name = args[1];
+    if ( NULL == name ) {
+        fprintf(stderr, "pash: %s : module not specified\n", args[0]);
+        return -1;
+    }
 
     m = _search_candidate_module(pash, name);
     if ( NULL == m ) {
@@ -223,6 +236,9 @@ pash_builtin_request(struct pash *pash, char *args[])
     }
 }
 
+/*
+ * Show
+ */
 int
 pash_builtin_show(struct pash *pash, char *args[])
 {
@@ -231,6 +247,10 @@ pash_builtin_show(struct pash *pash, char *args[])
 
     /* Get the second argument for the module name */
     name = args[1];
+    if ( NULL == name ) {
+        fprintf(stderr, "pash: %s : module not specified\n", args[0]);
+        return -1;
+    }
 
     m = _search_candidate_module(pash, name);
     if ( NULL == m ) {
@@ -298,7 +318,6 @@ pash_execute(struct pash *pash, const char *cmd)
         /* Release the command */
         free(s);
         return ret;
-
     }
 
     /* Search candidate commands */
