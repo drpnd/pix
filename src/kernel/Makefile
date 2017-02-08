@@ -6,6 +6,10 @@
 #      Hirochika Asai  <asai@jar.jp>
 #
 
+CFLAGS=-I../include \
+	-Wall -fleading-underscore -mcmodel=large -nostdlib -nodefaultlibs \
+	-fno-builtin -O3 -m64 -DARCH_X86_64=1
+
 arch/$(ARCH)/arch.o: ../include/aos/const.h kernel.h \
 	arch/$(ARCH)/arch.h \
 	../include/sys/syscall.h
