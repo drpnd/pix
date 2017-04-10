@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2016-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -160,6 +160,14 @@ fe_fpp_task(void *args)
 
     printf("Launch an exclusive task for fast-path processing at CPU %d, "
            "managing %d ports.\n", t->cpuid, n);
+
+    /* Idle if no handling queues */
+    if ( n <= 0 ) {
+        for ( ;; ) {
+            __asm__ __volatile__ ("syscall" :: "a"(SYS_xpsleep));
+        }
+        return NULL;
+    }
 
     for ( ;; ) {
         for ( i = 0; i < n; i++ ) {
