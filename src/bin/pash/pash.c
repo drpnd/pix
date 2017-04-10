@@ -364,7 +364,9 @@ int
 main(int argc, char *argv[])
 {
     char buf[256];
+    char *cmd;
     struct pash *pash;
+    char *lasts;
 
     /* Print out welcome message */
     printf("Welcome to Packet Information Chaining Service (pix)\n");
@@ -388,9 +390,13 @@ main(int argc, char *argv[])
 
     while ( 1 ) {
         if ( fgets(buf, sizeof(buf), stdin) ) {
-            pash_execute(pash, buf);
-            putchar('>');
-            putchar(' ');
+
+            cmd = strtok_r(buf, "\n", &lasts);
+            do {
+                pash_execute(pash, cmd);
+                putchar('>');
+                putchar(' ');
+            } while  ( NULL != strtok_r(NULL, "\n", &lasts) );
         }
     }
 
