@@ -346,6 +346,65 @@ strtok(char *__restrict__ str, const char *__restrict__ sep)
 }
 
 /*
+ * Tokenize string
+ *
+ * SYNOPSIS
+ *      char *
+ *      strtok_r(char *__restrict__ str, const char *__restrict__ sep,
+ *      char **__restrict__ lasts);
+ *
+ * DESCRIPTION
+ *      The strtok_r() function is used to isolate sequential tokens in a
+ *      null-terminated string, str.  These tokens are separated in the string
+ *      by at least one of the characters in sep.  The context pointer lasts
+ *      must be provided on each call.  The separator string, sep, must be
+ *      supplied each time, and may change between calls.  The strtok_r()
+ *      function may be used to nest two parsing loops within one another, as
+ *      long as separate context pointers used.
+ *
+ * RETURN VALUES
+ *      The strtok_r() function returns a pointer to the beginning of each
+ *      subsequent token in the string, after replacing the token itself with a
+ *      NULL character.  When no more tokens remain, a null pointer is returned.
+ */
+char *
+strtok_r(char *__restrict__ str, const char *__restrict__ sep,
+         char **__restrict__ lasts)
+{
+    const char *fsep;
+    char *r;
+
+    /* The first argument is specified. */
+    if ( NULL != str ) {
+        *lasts = str;
+    }
+
+    /* No more tokens remain */
+    if ( '\0' == **lasts ) {
+        return NULL;
+    }
+
+    r = *lasts;
+    while ( '\0' != **lasts ) {
+        /* Seek separator characters */
+        fsep = sep;
+        while ( '\0' != *fsep ) {
+            if ( **lasts == *fsep ) {
+                /* Match a separator character */
+                **lasts = '\0';
+                (*lasts)++;
+                return r;
+            }
+            fsep++;
+        }
+        (*lasts)++;
+    }
+
+    /* Reached at the end of the string */
+    return r;
+}
+
+/*
  * Separate strings
  *
  * SYNOPSIS
