@@ -42,7 +42,7 @@ kernel:
 ## Create FAT12/16 image
 image: bootloader kernel initrd
 #	Create the boot image
-	@./create_image.sh src/diskboot src/bootmon src/kpack initramfs
+	@./create_image.sh src/diskboot src/bootmon src/kernel/kpack initramfs
 
 ## VMDK
 vmdk: image

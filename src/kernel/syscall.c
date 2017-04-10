@@ -24,6 +24,7 @@
 #include <aos/const.h>
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <sys/reboot.h>
 #include <time.h>
 #include <machine/sysarch.h>
 #include <mki/driver.h>
@@ -64,7 +65,7 @@ sys_exit(int status)
     /* Get the current process */
     t = this_ktask();
     if ( NULL == t || NULL == t->proc ) {
-        panic("FIXME: Invalid task calls sys_exit()");
+        panic("An invalid task/process called sys_exit().");
         return;
     }
     proc = t->proc;
@@ -136,6 +137,9 @@ sys_fork_c(u64 *task, u64 *ret0, u64 *ret1)
     g_proc_table->procs[pid] = np;
     g_proc_table->lastpid = pid;
 
+    /* Set the pointer to the parent process */
+    np->parent = this_ktask()->proc;
+
     /* Kernel task (running) */
     l->ktask = nt;
     l->next = NULL;
@@ -197,11 +201,7 @@ sys_read(int fildes, void *buf, size_t nbyte)
         return -1;
     }
 
-    if ( NULL != proc->fds[fildes] ) {
-        return proc->fds[fildes]->read(proc->fds[fildes], buf, nbyte);
-    }
-
-    return -1;
+    return proc->fds[fildes]->read(proc->fds[fildes], buf, nbyte);
 }
 
 /*
@@ -246,11 +246,7 @@ sys_write(int fildes, const void *buf, size_t nbyte)
         return -1;
     }
 
-    if ( NULL != proc->fds[fildes] ) {
-        return proc->fds[fildes]->write(proc->fds[fildes], buf, nbyte);
-    }
-
-    return -1;
+    return proc->fds[fildes]->write(proc->fds[fildes], buf, nbyte);
 }
 
 /*
@@ -993,6 +989,45 @@ sys_gettimeofday(struct timeval *__restrict__ tp, void *__restrict__ tzp)
 
     return 0;
 }
+
+/*
+ * Reboot system or halt processor
+ *
+ * SYNOPSIS
+ *      int
+ *      sys_reboot(int howto);
+ *
+ * DESCRIPTION
+ *      The sys_reboot() function reboots the system.
+ *
+ * RETURN VALUES
+ *      If successful, this system call never returns.  Otherwise, a -1 is
+ *      returned.
+ */
+u8 inb(u16);
+void outb(u16, u8);
+int acpi_poweroff(void *);
+int
+sys_reboot(int howto)
+{
+    if ( howto & RB_HALT ) {
+        /* Halt */
+        acpi_poweroff(NULL);
+    } else {
+        /* Reboot */
+        int c;
+        do {
+            c = inb(0x0064);
+            if ( 0 != (c & 1) ) {
+                (void)inb(0x0060);
+            }
+        } while ( 0 != (c & 2) );
+        outb(0x0064, 0xfe);
+    }
+
+    return -1;
+}
+
 
 /*
  * Sleep this exclusive processor
