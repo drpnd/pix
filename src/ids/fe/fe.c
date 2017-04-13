@@ -270,6 +270,20 @@ _init_device(struct pci_dev_conf *conf)
         dev.rxq_last = -1;
         dev.txq_last = -1;
         dev.fastpath = 0;
+    } else if ( igb_is_igb(conf->vendor_id, conf->device_id) ) {
+        /* igb */
+        dev.driver = FE_DRIVER_IGB;
+        dev.u.igb
+            = igb_init(conf->device_id, conf->bus, conf->slot, conf->func);
+        igb_init_hw(dev.u.igb);
+        igb_setup_rx(dev.u.igb);
+        igb_setup_tx(dev.u.igb);
+        igb_enable_rx(dev.u.igb);
+        igb_enable_tx(dev.u.igb);
+        dev.domain = 0;
+        dev.rxq_last = -1;
+        dev.txq_last = -1;
+        dev.fastpath = 0;
     } else if ( ixgbe_is_ixgbe(conf->vendor_id, conf->device_id) ) {
         /* ixgbe */
         dev.driver = FE_DRIVER_IXGBE;

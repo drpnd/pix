@@ -50,6 +50,7 @@ enum fe_driver_type {
     FE_DRIVER_INVALID = -1,
     FE_DRIVER_KERNEL,
     FE_DRIVER_E1000,
+    FE_DRIVER_IGB,
     FE_DRIVER_IXGBE,
     FE_DRIVER_I40E,
 };
@@ -113,6 +114,7 @@ struct fe_driver_rx {
     union {
         struct fe_kernel_ring *kernel;
         struct e1000_rx_ring e1000;
+        struct igb_rx_ring igb;
         struct ixgbe_rx_ring ixgbe;
     } u;
 };
@@ -122,6 +124,7 @@ struct fe_driver_tx {
     union {
         struct fe_kernel_ring *kernel;
         struct e1000_tx_ring e1000;
+        struct igb_tx_ring igb;
         struct ixgbe_tx_ring ixgbe;
     } u;
 };
@@ -174,6 +177,7 @@ struct fe_device {
     /* Device data */
     union {
         struct e1000_device *e1000;
+        struct igb_device *igb;
         struct ixgbe_device *ixgbe;
     } u;
     /* Type; exclusive or kernel */
@@ -299,6 +303,16 @@ fe_collect_buffer(struct fe_task *t, struct fe_driver_tx *tx)
         }
         return 0;
 
+    case FE_DRIVER_IGB:
+        ret = igb_collect_buffer(&tx->u.igb, (void **)&hdr);
+        if ( ret > 0 ) {
+            hdr->refs--;
+            if ( hdr->refs <= 0 ) {
+                fe_release_buffer(t, hdr);
+            }
+        }
+        return 0;
+
     case FE_DRIVER_IXGBE:
         ret = ixgbe_collect_buffer(&tx->u.ixgbe, (void **)&hdr);
         if ( ret > 0 ) {
@@ -325,6 +339,8 @@ fe_driver_max_tx_queues(struct fe_device *dev)
     switch ( dev->driver ) {
     case FE_DRIVER_E1000:
         return e1000_max_tx_queues(dev->u.e1000);
+    case FE_DRIVER_IGB:
+        return igb_max_tx_queues(dev->u.igb);
     case FE_DRIVER_IXGBE:
         return ixgbe_max_tx_queues(dev->u.ixgbe);
     default:
@@ -353,6 +369,12 @@ fe_driver_setup_rx_ring(struct fe_device *dev, struct fe_driver_rx *rx, void *m,
         dev->rxq_last++;
         ret = e1000_setup_rx_ring(dev->u.e1000, &rx->u.e1000, dev->rxq_last, m,
                                   v2poff, qlen);
+        break;
+
+    case FE_DRIVER_IGB:
+        dev->rxq_last++;
+        ret = igb_setup_rx_ring(dev->u.igb, &rx->u.igb, dev->rxq_last, m,
+                                v2poff, qlen);
         break;
 
     case FE_DRIVER_IXGBE:
@@ -388,6 +410,12 @@ fe_driver_setup_tx_ring(struct fe_device *dev, struct fe_driver_tx *tx, void *m,
                                   v2poff, qlen);
         break;
 
+    case FE_DRIVER_IGB:
+        dev->txq_last++;
+        ret = igb_setup_tx_ring(dev->u.igb, &tx->u.igb, dev->txq_last, m,
+                                v2poff, qlen);
+        break;
+
     case FE_DRIVER_IXGBE:
         dev->txq_last++;
         ret = ixgbe_setup_tx_ring(dev->u.ixgbe, &tx->u.ixgbe, dev->txq_last, m,
@@ -419,6 +447,10 @@ fe_driver_calc_rx_ring_memsize(struct fe_driver_rx *rx, uint16_t qlen)
         ret = e1000_calc_rx_ring_memsize(&rx->u.e1000, qlen);
         break;
 
+    case FE_DRIVER_IGB:
+        ret = igb_calc_rx_ring_memsize(&rx->u.igb, qlen);
+        break;
+
     case FE_DRIVER_IXGBE:
         ret = ixgbe_calc_rx_ring_memsize(&rx->u.ixgbe, qlen);
         break;
@@ -446,6 +478,10 @@ fe_driver_calc_tx_ring_memsize(struct fe_driver_tx *tx, uint16_t qlen)
 
     case FE_DRIVER_E1000:
         ret = e1000_calc_tx_ring_memsize(&tx->u.e1000, qlen);
+        break;
+
+    case FE_DRIVER_IGB:
+        ret = igb_calc_tx_ring_memsize(&tx->u.igb, qlen);
         break;
 
     case FE_DRIVER_IXGBE:
@@ -482,6 +518,9 @@ fe_driver_rx_refill(struct fe_task *t, struct fe_driver_rx *rx)
 
     case FE_DRIVER_E1000:
         return e1000_rx_refill(&rx->u.e1000, pa + FE_PKT_HDROFF, pkt);
+
+    case FE_DRIVER_IGB:
+        return igb_rx_refill(&rx->u.igb, pa + FE_PKT_HDROFF, pkt);
 
     case FE_DRIVER_IXGBE:
         return ixgbe_rx_refill(&rx->u.ixgbe, pa + FE_PKT_HDROFF, pkt);
@@ -524,6 +563,10 @@ fe_driver_rx_commit(struct fe_driver_rx *rx)
 
     case FE_DRIVER_E1000:
         e1000_rx_commit(&rx->u.e1000);
+        break;
+
+    case FE_DRIVER_IGB:
+        igb_rx_commit(&rx->u.igb);
         break;
 
     case FE_DRIVER_IXGBE:
@@ -585,6 +628,13 @@ fe_driver_rx_dequeue(struct fe_driver_rx *rx, struct fe_pkt_buf_hdr **hdr,
 
     case FE_DRIVER_E1000:
         ret = e1000_rx_dequeue(&rx->u.e1000, (void **)hdr);
+        if ( ret > 0 ) {
+            *pkt = (void *)*hdr + FE_PKT_HDROFF;
+        }
+        return ret;
+
+    case FE_DRIVER_IGB:
+        ret = igb_rx_dequeue(&rx->u.igb, (void **)hdr);
         if ( ret > 0 ) {
             *pkt = (void *)*hdr + FE_PKT_HDROFF;
         }
@@ -685,6 +735,15 @@ fe_driver_tx_enqueue(struct fe_task *t, struct fe_driver_tx *tx, int port,
         }
         return ret;
 
+    case FE_DRIVER_IGB:
+        pkt = fe_v2p(t, pkt);
+        ret = igb_tx_enqueue(&tx->u.igb, pkt, hdr, length);
+        if ( ret > 0 ) {
+            /* Increment the reference counter */
+            hdr->refs++;
+        }
+        return ret;
+
     case FE_DRIVER_IXGBE:
         pkt = fe_v2p(t, pkt);
         ret = ixgbe_tx_enqueue(&tx->u.ixgbe, pkt, hdr, length);
@@ -713,6 +772,9 @@ fe_driver_tx_commit(struct fe_driver_tx *tx)
         break;
     case FE_DRIVER_E1000:
         e1000_tx_commit(&tx->u.e1000);
+        break;
+    case FE_DRIVER_IGB:
+        igb_tx_commit(&tx->u.igb);
         break;
     case FE_DRIVER_IXGBE:
         ixgbe_tx_commit(&tx->u.ixgbe);
