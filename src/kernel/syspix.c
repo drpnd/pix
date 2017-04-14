@@ -133,7 +133,6 @@ sys_pix_create_job(int cpuid, void *(*start_routine)(void *), void *args)
     return 0;
 }
 
-
 /*
  * Local variables:
  * tab-width: 4

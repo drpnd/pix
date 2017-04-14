@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -186,6 +186,63 @@ struct tss {
     u32 reserved5;
     u16 reserved6;
     u16 iomap;
+} __attribute__ ((packed));
+
+/*
+ * CPU dump information
+ */
+struct arch_cpu_dump {
+    /* Padding */
+    u64 pad[8];
+    /* Generic registers */
+    u64 ax;
+    u64 bx;
+    u64 cx;
+    u64 dx;
+    u64 r8;
+    u64 r9;
+    u64 r10;
+    u64 r11;
+    u64 r12;
+    u64 r13;
+    u64 r14;
+    u64 r15;
+
+    /* Index registers */
+    u64 si;
+    u64 di;
+
+    /* Segment registers */
+    u64 ss;
+    u64 cs;
+    u64 ds;
+    u64 es;
+    u64 fs;
+    u64 gs;
+
+    /* Stack pointer */
+    u64 sp;
+
+    /* Base pointer */
+    u64 bp;
+
+    /* Instruction pointer */
+    u64 ip;
+
+    /* Flags */
+    u64 flags;
+
+    /* Control registers */
+    u64 cr0;
+    u64 cr1;
+    u64 cr2;
+    u64 cr3;
+    u64 cr4;
+    u64 cr5;
+    u64 cr6;
+    u64 cr7;
+    u64 cr8;
+
 } __attribute__ ((packed));
 
 /*
@@ -398,6 +455,7 @@ void intr_driver_0x5f(void);
 void intr_apic_loc_tmr(void);
 void intr_apic_loc_tmr_xp(void);
 void intr_pixipi(void);
+void intr_dumpcpu(void);
 void intr_timesync(void);
 void intr_crash(void);
 void task_restart(void);

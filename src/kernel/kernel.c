@@ -144,7 +144,17 @@ isr_loc_tmr(void)
 void
 isr_pixipi(void)
 {
-    //set_next_ktask(ktask);
+    u16 *video = (u16 *)0xc00b8000ULL;
+    char buf[512];
+    ssize_t i;
+    struct ktask *ktask;
+
+    ktask = this_ktask();
+    ksnprintf(buf, 512, "%x %x  ", ktask, ktask->id);
+    for ( i = 0; i < (ssize_t)kstrlen(buf); i++ ) {
+        *video = 0x0f00 | (u16)buf[i];
+        video++;
+    }
 }
 
 /*

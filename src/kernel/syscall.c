@@ -1108,6 +1108,45 @@ _debug_timer(u16 *video)
         e = e->next;
     }
 }
+void lapic_send_fixed_ipi(int, u8);
+static void
+_debug_cpu(u16 *video)
+{
+    ssize_t i;
+    char buf[1024];
+
+    lapic_send_fixed_ipi(2, IV_DUMPCPU);
+
+    /* Display timer list */
+    ksnprintf(buf, 1024,
+              "rax: %.16llx   rbx: %.16llx   rcx: %.16llx           "
+              "rdx: %.16llx   r8:  %.16llx   r9:  %.16llx           "
+              "r10: %.16llx   r11: %.16llx   r12: %.16llx           "
+              "r13: %.16llx   r14: %.16llx   r15: %.16llx           "
+              "rsi: %.16llx   rdi: %.16llx   ss:  %.16llx           "
+              "cs:  %.16llx   ds:  %.16llx   es:  %.16llx           "
+              "fs:  %.16llx   gs:  %.16llx   rsp: %.16llx           "
+              "rbp: %.16llx   rip: %.16llx   flg: %.16llx           "
+              "cr0: %.16llx   cr1: %.16llx   cr2: %.16llx           "
+              "cr3: %.16llx   cr4: %.16llx   cr5: %.16llx           "
+              "cr6: %.16llx   cr7: %.16llx   cr8: %.16llx           ",
+              *((u64 *)0xc0007e40), *((u64 *)0xc0007e48), *((u64 *)0xc0007e50),
+              *((u64 *)0xc0007e58), *((u64 *)0xc0007e60), *((u64 *)0xc0007e68),
+              *((u64 *)0xc0007e70), *((u64 *)0xc0007e78), *((u64 *)0xc0007e80),
+              *((u64 *)0xc0007e88), *((u64 *)0xc0007e90), *((u64 *)0xc0007e98),
+              *((u64 *)0xc0007ea0), *((u64 *)0xc0007ea8), *((u64 *)0xc0007eb0),
+              *((u64 *)0xc0007eb8), *((u64 *)0xc0007ec0), *((u64 *)0xc0007ec8),
+              *((u64 *)0xc0007ed0), *((u64 *)0xc0007ed8), *((u64 *)0xc0007ee0),
+              *((u64 *)0xc0007ee8), *((u64 *)0xc0007ef0), *((u64 *)0xc0007ef8),
+              *((u64 *)0xc0007f00), *((u64 *)0xc0007f08), *((u64 *)0xc0007f10),
+              *((u64 *)0xc0007f18), *((u64 *)0xc0007f20), *((u64 *)0xc0007f28),
+              *((u64 *)0xc0007f30), *((u64 *)0xc0007f38), *((u64 *)0xc0007f40));
+    for ( i = 0; i < (ssize_t)kstrlen(buf); i++ ) {
+        *video = 0x0f00 | (u16)buf[i];
+        video++;
+    }
+}
+
 void
 sys_debug(int nr)
 {
@@ -1128,6 +1167,9 @@ sys_debug(int nr)
         break;
     case 2:
         _debug_timer(video);
+        break;
+    case 3:
+        _debug_cpu(video);
         break;
     default:
         ;

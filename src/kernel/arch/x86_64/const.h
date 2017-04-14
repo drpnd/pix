@@ -78,6 +78,8 @@
 /* Syscall */
 //#define SYSCALL_MAX_NR 0x10
 
+#define KERNEL_DEBUG_INFO       0xc0007e00
+
 #endif /* _KERNEL_ARCH_CONST_H */
 
 /*

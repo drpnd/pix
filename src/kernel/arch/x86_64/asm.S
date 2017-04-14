@@ -97,6 +97,7 @@
 	.globl	_intr_apic_loc_tmr
 	.globl	_intr_apic_loc_tmr_xp
 	.globl	_intr_pixipi
+	.globl	_intr_dumpcpu
 	.globl	_intr_timesync
 	.globl	_intr_crash
 	.globl	_sys_fork
@@ -1267,9 +1268,112 @@ _intr_pixipi:
 	intr_lapic_isr 0xe0
 	jmp	_task_restart
 
+/* Dump CPU information */
+_intr_dumpcpu:
+	/* Save scratch registers */
+	pushq	%rax
+	pushq	%rdi
+	pushq	%rsi
+	pushq	%rdx
+	pushq	%rcx
+	pushq	%r8
+	pushq	%r9
+	pushq	%r10
+	pushq	%r11
+	/* Set CR0.TS */
+	movq	%cr0,%rax
+	bts	$3,%rax
+	movq	%rax,%cr0
+	/* Save the info */
+	movabs	$KERNEL_DEBUG_INFO,%rdx
+	movq	64(%rsp),%rax
+	movq	%rax,0x40(%rdx)
+	movq	%rbx,0x48(%rdx)
+	movq	32(%rsp),%rax
+	movq	%rax,0x50(%rdx)
+	movq	40(%rsp),%rax
+	movq	%rax,0x58(%rdx)
+	movq	24(%rsp),%rax
+	movq	%rax,0x60(%rdx)
+	movq	16(%rsp),%rax
+	movq	%rax,0x68(%rdx)
+	movq	8(%rsp),%rax
+	movq	%rax,0x70(%rdx)
+	movq	0(%rsp),%rax
+	movq	%rax,0x78(%rdx)
+	movq	%r12,0x80(%rdx)
+	movq	%r13,0x88(%rdx)
+	movq	%r14,0x90(%rdx)
+	movq	%r15,0x98(%rdx)
+	movq	48(%rsp),%rax
+	movq	%rax,0xa0(%rdx)
+	movq	56(%rsp),%rax
+	movq	%rax,0xa8(%rdx)
+	movq	104(%rsp),%rax	/* ss */
+	movq	%rax,0xb0(%rdx)
+	movq	80(%rsp),%rax	/* cs */
+	movq	%rax,0xb8(%rdx)
+	movq	%ds,%rax
+	movq	%rax,0xc0(%rdx)
+	movq	%es,%rax
+	movq	%rax,0xc8(%rdx)
+	movq	%fs,%rax
+	movq	%rax,0xd0(%rdx)
+	movq	%gs,%rax
+	movq	%rax,0xd8(%rdx)
+	movq	96(%rsp),%rax	/* rsp */
+	movq	%rax,0xe0(%rdx)
+	movq	%rbp,%rax
+	movq	%rax,0xe8(%rdx)
+	movq	72(%rsp),%rax	/* rip */
+	movq	%rax,0xf0(%rdx)
+	movq	88(%rsp),%rax	/* flags */
+	movq	%rax,0xf8(%rdx)
+	movq	%cr0,%rax
+	movq	%rax,0x100(%rdx)
+	//movq	%cr1,%rax
+	//movq	%rax,0x108(%rdx)
+	//movq	%cr2,%rax
+	//movq	%rax,0x110(%rdx)
+	//movq	%cr3,%rax
+	//movq	%rax,0x118(%rdx)
+	movq	%cr4,%rax
+	movq	%rax,0x120(%rdx)
+	//movq	%cr5,%rax
+	//movq	%rax,0x128(%rdx)
+	//movq	%cr6,%rax
+	//movq	%rax,0x130(%rdx)
+	//movq	%cr7,%rax
+	//movq	%rax,0x138(%rdx)
+	movq	%cr8,%rax
+	movq	%rax,0x140(%rdx)
+	/* Clear task-switch flag */
+	clts
+	/* APIC EOI */
+	movq	$MSR_APIC_BASE,%rcx
+	rdmsr			/* Read APIC info to [%edx:%eax]; N.B., higer */
+				/*  32 bits of %rax and %rdx are cleared */
+				/*  bit [35:12]: APIC Base, [11]: EN */
+				/*  [10]: EXTD, and [8]:BSP */
+	shlq	$32,%rdx
+	addq	%rax,%rdx
+	andq	$0xfffffffffffff000,%rdx	/* APIC Base */
+	movl	$0,APIC_EOI(%rdx)	/* EOI */
+	/* Restore scratch registers */
+	popq	%r11
+	popq	%r10
+	popq	%r9
+	popq	%r8
+	popq	%rcx
+	popq	%rdx
+	popq	%rsi
+	popq	%rdi
+	popq	%rax
+	iretq
+
 /* Time-sync request */
 _intr_timesync:
-	/* Save scratch registers*/
+	/* Save scratch registers */
 	pushq	%rax
 	pushq	%rdi
 	pushq	%rsi
@@ -1299,7 +1403,7 @@ _intr_timesync:
 	addq	%rax,%rdx
 	andq	$0xfffffffffffff000,%rdx	/* APIC Base */
 	movl	$0,APIC_EOI(%rdx)	/* EOI */
-	/* Restore scratch registers*/
+	/* Restore scratch registers */
 	popq	%r11
 	popq	%r10
 	popq	%r9

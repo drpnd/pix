@@ -115,6 +115,7 @@ intr_setup(void)
     idt_setup_intr_gate(IV_LOC_TMR, intr_apic_loc_tmr);
     idt_setup_intr_gate(IV_LOC_TMR_XP, intr_apic_loc_tmr_xp);
     idt_setup_intr_gate(IV_PIXIPI, intr_pixipi);
+    idt_setup_intr_gate(IV_DUMPCPU, intr_dumpcpu);
     idt_setup_intr_gate(IV_TIMESYNC, intr_timesync);
     idt_setup_intr_gate(IV_CRASH, intr_crash);
 

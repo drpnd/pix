@@ -167,6 +167,7 @@
 #define IV_LOC_TMR              0x40
 #define IV_LOC_TMR_XP           0x41 /* Exclusive processor */
 #define IV_PIXIPI               0xe0
+#define IV_DUMPCPU              0xfc
 #define IV_TIMESYNC             0xfd
 #define IV_CRASH                0xfe
 #define NR_IV                   0x100
