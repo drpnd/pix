@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,6 +29,7 @@
 	.globl	kstart64
 	.globl	apstart64
 	.globl	_halt
+	.globl	_crash_halt
 	.globl	_pause
 	.globl	_lgdt
 	.globl	_sgdt
@@ -181,6 +182,14 @@ _halt:
 	hlt
 	ret
 
+/* void crash_halt(void) */
+_crash_halt:
+	cli
+1:
+	hlt
+	jmp	1b
+	ret
+
 /* void pause(void) */
 _pause:
 	pause
@@ -301,13 +310,17 @@ _mfwrite32:
 	movl	%esi,(%rdi)
 	ret
 
-/* u64 cpuid(u64 rax, u64 *rcx, u64 *rdx) */
+/* u64 cpuid(u64 rax, u64 *rbx, u64 *rcx, u64 *rdx) */
 _cpuid:
+	pushq	%rbx
 	movq	%rdi,%rax
 	movq	%rdx,%rdi
+	movq	%rcx,%r8
 	cpuid
-	movq	%rcx,(%rsi)
-	movq	%rdx,(%rdi)
+	movq	%rbx,(%rsi)
+	movq	%rcx,(%rdi)
+	movq	%rdx,(%r8)
+	popq	%rbx
 	ret
 
 /* u64 rdmsr(u64 reg) */

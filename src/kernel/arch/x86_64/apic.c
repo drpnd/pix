@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -220,7 +220,6 @@ lapic_estimate_freq(void)
 void
 lapic_oneshot_timer(u64 msec, u8 vec)
 {
-    /* Estimate frequency first */
     u64 busfreq;
     struct cpu_data *pdata;
     u64 apic_base;
@@ -243,7 +242,6 @@ lapic_oneshot_timer(u64 msec, u8 vec)
 void
 lapic_start_timer(u64 freq, u8 vec)
 {
-    /* Estimate frequency first */
     u64 busfreq;
     struct cpu_data *pdata;
     u64 apic_base;

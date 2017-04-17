@@ -35,6 +35,7 @@ kpack: arch/$(ARCH)/asm.o \
 	arch/$(ARCH)/trampoline.o \
 	arch/$(ARCH)/ap_entry32.o \
 	arch/$(ARCH)/ap_entry64.o \
+	arch/$(ARCH)/cpuid.o \
 	arch/$(ARCH)/vmx.o \
 	arch/$(ARCH)/task.o \
 	arch/$(ARCH)/cmos.o \

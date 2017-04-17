@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -80,7 +80,6 @@ kinit(void)
     g_syscall_table[SYS_sysarch] = sys_sysarch;
 }
 
-
 /*
  * Entry point to the kernel in C for all processors, called from asm.s.
  */
@@ -144,17 +143,6 @@ isr_loc_tmr(void)
 void
 isr_pixipi(void)
 {
-    u16 *video = (u16 *)0xc00b8000ULL;
-    char buf[512];
-    ssize_t i;
-    struct ktask *ktask;
-
-    ktask = this_ktask();
-    ksnprintf(buf, 512, "%x %x  ", ktask, ktask->id);
-    for ( i = 0; i < (ssize_t)kstrlen(buf); i++ ) {
-        *video = 0x0f00 | (u16)buf[i];
-        video++;
-    }
 }
 
 /*

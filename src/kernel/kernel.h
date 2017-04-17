@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -850,6 +850,7 @@ void set_next_ktask(struct ktask *);
 void set_next_idle(void);
 void panic(const char *);
 void halt(void);
+void crash_halt(void);
 struct ktask *task_create(struct proc *, void *(*)(void *), void *);
 struct proc * proc_fork(struct proc *, struct ktask *, struct ktask **);
 void task_set_return(struct ktask *, unsigned long long);

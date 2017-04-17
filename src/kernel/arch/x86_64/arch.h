@@ -101,6 +101,9 @@
 #define CR4_OSXSAVE             (1ULL << 18)
 #define CR4_SMEP                (1ULL << 20)
 
+
+#define MSR_PLATFORM_INFO       0xce
+
 /*
  * Boot information from boot loader
  */
@@ -355,8 +358,9 @@ struct cpu_data {
     u32 cpu_id;
     u64 freq;           /* Frequency */
     u64 tsc_offset;     /* TSC-offset to the BSP */
+    u64 tsc_freq;
     u32 prox_domain;
-    u32 reserved[5];
+    u32 reserved[3];
     u64 stats[IDT_NR];  /* Interrupt counter */
     /* CPU_TSS_OFFSET */
     struct tss tss;
@@ -469,7 +473,7 @@ void outw(u16, u16);
 void outl(u16, u32);
 u32 mfread32(u64);
 void mfwrite32(u64, u32);
-u64 cpuid(u64, u64 *, u64 *);
+u64 cpuid(u64, u64 *,u64 *, u64 *);
 u64 rdmsr(u64);
 void wrmsr(u64, u64);
 u64 get_cr0(void);
@@ -494,6 +498,9 @@ void sys_task_switch(void);
 /* in trampoline.s */
 void trampoline(void);
 void trampoline_end(void);
+
+/* in cpuid.c */
+int cpuid_parse(void);
 
 /* in task.c */
 struct arch_task * task_create_idle(void);
@@ -552,7 +559,6 @@ int proc_create(const char *, const char *, pid_t);
                           "popq %rax;"          \
                           "iretq;");            \
     }
-
 
 #define APIC_LAPIC_ID 0x020
 #define MSR_APIC_BASE 0x1b

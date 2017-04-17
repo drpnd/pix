@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -221,8 +221,61 @@ panic(const char *s)
 
     /* Stop forever */
     while ( 1 ) {
-        halt();
+        crash_halt();
     }
+}
+
+/*
+ * Compute invariant TSC frequency
+ */
+u64
+invariant_tsc_freq(void)
+{
+    u64 reg;
+    u64 rax;
+    u64 rbx;
+    u64 rcx;
+    u64 rdx;
+    u64 family;
+    u64 model;
+
+    /* Check Invariant TSC support */
+    cpuid(0x80000007, &rbx, &rcx, &rdx);
+    if ( !(rdx & 0x100) ) {
+        return 0;
+    }
+
+    /* Read TSC frequency */
+    reg = (rdmsr(MSR_PLATFORM_INFO) & 0xff00) >> 8;
+
+    rax = cpuid(0x01, &rbx, &rcx, &rdx);
+    family = ((rax & 0xf00) >> 8) | ((rax & 0xff00000) >> 12);
+    model = ((rax & 0xf0) >> 4) | ((rax & 0xf0000) >> 12);
+    if ( 0x06 == family ) {
+        switch ( model ) {
+        case 0x2a: /* SandyBridge */
+        case 0x2d: /* SandyBridge-E */
+        case 0x3a: /* IvyBridge */
+        case 0x46: /* Skylake */
+        case 0x4e: /* Skylake */
+        case 0x57: /* Xeon Phi */
+            /* 100.00 MHz */
+            return reg * 100000000;
+        case 0x1e: /* Nehalem */
+        case 0x1a: /* Nehalem */
+        case 0x2e: /* Nehalem */
+            /* 133.33 MHz */
+            return reg * 133330000;
+        }
+    }
+
+    /* Debugging information to support more CPUs */
+    char buf[512];
+    ksnprintf(buf, sizeof(buf), "Unsupported CPU: family = %x, model = %x",
+              family, model);
+    panic(buf);
+
+    return 0;
 }
 
 /*
@@ -348,6 +401,16 @@ bsp_init(void)
 
     /* Estimate the frequency */
     pdata->freq = lapic_estimate_freq();
+    if ( !pdata->freq ) {
+        panic("Fatal: Could not estimate frequency on BSP.");
+        return;
+    }
+
+    /* Check Invariant TSC support */
+    pdata->tsc_freq = invariant_tsc_freq();
+    if ( !pdata->tsc_freq ) {
+        panic("Fatal: Invariant TSC is not supported on this CPU.");
+    }
 
     /* Read RTC and TSC */
     g_timesync.lock = 0;
@@ -457,6 +520,16 @@ ap_init(void)
 
     /* Estimate the frequency */
     pdata->freq = lapic_estimate_freq();
+    if ( !pdata->freq ) {
+        panic("Fatal: Could not estimate frequency on AP.");
+        return;
+    }
+
+    /* Check Invariant TSC support */
+    pdata->tsc_freq = invariant_tsc_freq();
+    if ( !pdata->tsc_freq ) {
+        panic("Fatal: Invariant TSC is not supported on this CPU.");
+    }
 
     /* Read TSC to calculate the offset to the BSP */
     spin_lock(&g_timesync.lock);
@@ -467,7 +540,7 @@ ap_init(void)
     while ( 0 == g_timesync.tsc ) {
         /* Wait until the TSC is set */
         tsc = rdtsc();
-        if ( tsc - tsc0 > 1000000000 ) {
+        if ( tsc - tsc0 > pdata->freq * 5 ) {
             /* Timeout */
             break;
         }
@@ -642,7 +715,7 @@ arch_usec_since_boot(void)
     tsc = tsc + pdata->tsc_offset;
 
     /* TSC to microseconds */
-    return 1000000ULL * tsc / pdata->freq;
+    return 1000000ULL * tsc / pdata->tsc_freq;
 }
 
 /*
@@ -655,6 +728,7 @@ arch_pix_task(int id, struct ktask *t)
 
     cpu = (struct cpu_data *)((u64)CPU_DATA_BASE + CPU_DATA_SIZE * id);
     cpu->next_task = t->arch;
+
     lapic_send_fixed_ipi(id, IV_PIXIPI);
 }
 
