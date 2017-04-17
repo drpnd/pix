@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -974,7 +974,7 @@ sys_gettimeofday(struct timeval *__restrict__ tp, void *__restrict__ tzp)
         usec = arch_usec_since_boot();
 
         tp->tv_sec = g_boottime.sec + usec / 1000000;
-        usec -= usec / 1000000;
+        usec -= (usec / 1000000) * 1000000;
         tp->tv_sec += (g_boottime.usec + usec) / 1000000;
         tp->tv_usec = (g_boottime.usec + usec) % 1000000;
     }
