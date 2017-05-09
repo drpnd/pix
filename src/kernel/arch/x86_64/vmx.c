@@ -149,6 +149,7 @@ void *vmxon_vmcs;
 int
 vmx_enable(void)
 {
+    u64 rbx;
     u64 rcx;
     u64 rdx;
     u64 vmx;
@@ -161,7 +162,7 @@ vmx_enable(void)
     u64 f;
 
     /* Check the VMX support */
-    cpuid(1, &rcx, &rdx);
+    cpuid(1, &rbx, &rcx, &rdx);
     if ( !(rcx & (1 << 5)) ) {
         /* VMX is not supported */
         return -1;

@@ -39,7 +39,9 @@ kpack: arch/$(ARCH)/asm.o \
 	arch/$(ARCH)/vmx.o \
 	arch/$(ARCH)/task.o \
 	arch/$(ARCH)/cmos.o \
+	arch/$(ARCH)/ktimer_tsc.o \
 	kernel.o \
+	ktimer.o \
 	memory.o \
 	pmem.o \
 	kmem.o \

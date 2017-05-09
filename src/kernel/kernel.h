@@ -24,6 +24,7 @@
 #ifndef _KERNEL_H
 #define _KERNEL_H
 
+#include "ktimer.h"
 #include <aos/const.h>
 #include <aos/types.h>
 #include <sys/resource.h>
@@ -53,6 +54,7 @@
 #define g_syscall_table g_kvar->syscall_table
 #define g_intr_table    g_kvar->intr_table
 #define g_timer         g_kvar->timer
+#define g_tmrdev        g_kvar->tmrdev
 #define g_jiffies       g_kvar->jiffies
 #define g_devfs         g_kvar->devfs
 #define g_boottime      g_kvar->boottime
@@ -686,6 +688,22 @@ struct ktimer {
     struct ktimer_event *head;
 };
 
+/*
+ * Kernel timer device API
+ */
+struct ktimer_device_entry {
+    /* Device definition */
+    struct ktimer_device dev;
+    /* Device-defined data */
+    void *data;
+    /* Pointer to the next device */
+    struct ktimer_device *next;
+};
+struct ktimer_devices {
+    struct ktimer_device_entry *devices;
+};
+
+
 /* Kernel event handler */
 typedef void (*kevent_handler_f)(void);
 struct kevent_handlers {
@@ -731,6 +749,8 @@ struct kernel_variables {
     /* Timer */
     struct ktimer timer;
     reg_t jiffies;
+    /* Timer devices */
+    struct ktimer_devices *tmrdev;
     /* devfs */
     struct devfs devfs;
 };

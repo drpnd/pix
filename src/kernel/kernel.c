@@ -43,6 +43,9 @@ kinit(void)
     g_timer.head = NULL;
     g_jiffies = 0;
 
+    /* Innitialize the timer list */
+    g_tmrdev = NULL;
+
     /* Initialize devfs */
     g_devfs.head = NULL;
 

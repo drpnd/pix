@@ -1243,11 +1243,12 @@ int
 arch_address_width(void)
 {
     u64 rax;
+    u64 rbx;
     u64 rcx;
     u64 rdx;
 
     /* Get the physical-address width */
-    rax = cpuid(0x80000008, &rcx, &rdx);
+    rax = cpuid(0x80000008, &rbx, &rcx, &rdx);
 
     return rax & 0xff;
 }

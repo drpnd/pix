@@ -971,6 +971,7 @@ sys_gettimeofday(struct timeval *__restrict__ tp, void *__restrict__ tzp)
     struct timezone *tz;
 
     if ( NULL != tp ) {
+        //get_usec_since_boot();
         usec = arch_usec_since_boot();
 
         tp->tv_sec = g_boottime.sec + usec / 1000000;
