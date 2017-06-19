@@ -10,6 +10,12 @@ CFLAGS=-I../include \
 	-Wall -fleading-underscore -mcmodel=large -nostdlib -nodefaultlibs \
 	-fno-builtin -O3 -m64 -DARCH_X86_64=1
 
+## Override the flags
+kpack: ASFLAGS=-nostdlib -I./arch/$(ARCH)/
+kpack: CFLAGS=-I../include \
+	-Wall -fleading-underscore -mcmodel=large -nostdlib -nodefaultlibs \
+	-fno-builtin -O3 -m64 -DARCH_X86_64=1
+
 arch/$(ARCH)/arch.o: ../include/aos/const.h kernel.h \
 	arch/$(ARCH)/arch.h \
 	../include/sys/syscall.h
@@ -55,6 +61,6 @@ kpack: arch/$(ARCH)/asm.o \
 	syscall.o \
 	syspix.o \
 	sysdriver.o
-	$(LD) -N -e kstart64 -Ttext=0xc0010000 --oformat binary -o $@ $^
-	$(LD) -N -e kstart64 -Ttext=0xc0010000 -o kpack.dbg $^
+	$(LD) -N -T kernel.ld -o $@ $^
+	$(LD) -N -T kerneldebug.ld -o kpack.dbg $^
 

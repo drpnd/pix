@@ -51,7 +51,7 @@ fi
 
 
 ## Create an image file
-cp src/diskboot $outfile
+cp $bootloader1 $outfile
 
 ## Write partition table (#1: start: cyl=0, hd=2, sec=3)
 ## N.B., # of cyl, hd, and sec in the entry are different from drives
@@ -62,7 +62,7 @@ printf '\200\002\003\000\013\055\055\000\200\000\000\000\300\012' \
 printf '\125\252' | dd of=$outfile bs=1 seek=510 conv=notrunc > /dev/null 2>&1
 
 ## Write bootmon
-dd if=src/bootmon of=$outfile bs=1 seek=512 conv=notrunc > /dev/null 2>&1
+dd if=$bootloader2 of=$outfile bs=1 seek=512 conv=notrunc > /dev/null 2>&1
 
 ## Write initramfs (FAT12)
 printf '\353\076\220AOS  1.0\000\002\010\001\000\002\000\002\300\012\370\010\000\040\000\040\000\000\010\000\000\000\000\000\000\200\000\051\000\000\000\000NO NAME    FAT12   ' \

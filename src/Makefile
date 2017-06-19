@@ -13,35 +13,13 @@ ASFLAGS=-nostdlib -I./kernel/arch/$(ARCH)/
 CFLAGS=-I./include -Wall -fleading-underscore -nostdinc -nostdlib -O3 -m64 \
 	-DARCH_X86_64=1 -DPIX_VERSION='"$(VERSION)"'
 
-## Override the flags
-diskboot: ASFLAGS=-nostdlib -I./boot/arch/$(ARCH)/
-bootmon: ASFLAGS=-nostdlib -I./boot/arch/$(ARCH)/
-bootmon: CFLAGS=-I./include \
-	-Wall -fleading-underscore -nostdlib -nodefaultlibs -fno-builtin -O3 -m64
-
-pxeboot: ASFLAGS=-nostdlib -I./boot/arch/$(ARCH)/
-
-kpack: ASFLAGS=-nostdlib -I./kernel/arch/$(ARCH)/
-kpack: CFLAGS=-I./include \
-	-Wall -fleading-underscore -mcmodel=large -nostdlib -nodefaultlibs \
-	-fno-builtin -O3 -m64 -DARCH_X86_64=1
-
-## IPL
-diskboot: boot/arch/$(ARCH)/diskboot.o
-	$(LD) -N -e start -Ttext=0x7c00 --oformat binary -o $@ $^
-
-## Boot monitor
-bootmon: boot/arch/$(ARCH)/bootmon.o \
-	boot/arch/$(ARCH)/kernload.o \
-	boot/arch/$(ARCH)/entry16.o \
-	boot/arch/$(ARCH)/entry32.o \
-	boot/arch/$(ARCH)/entry64.o \
-	boot/arch/$(ARCH)/boot.o
-	$(LD) -N -e bootmon -Ttext=0x9000 --oformat binary -o $@ $^
-
-## PXE boot
-pxeboot: boot/arch/$(ARCH)/pxeboot.o
-	$(LD) -N -e pxeboot -Ttext=0x7c00 --oformat binary -o $@ $^
+## Boot loader
+diskboot:
+	ARCH=${ARCH} make -C boot diskboot
+bootmon:
+	ARCH=${ARCH} make -C boot bootmon
+pxeboot:
+	ARCH=${ARCH} make -C boot pxeboot
 
 ## Kernel
 kpack:
