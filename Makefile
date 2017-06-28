@@ -27,24 +27,21 @@ initramfs:
 		fe:/ids/fe
 
 ## Compile boot loader
-bootloader: src/diskboot src/pxeboot src/bootmon
-src/diskboot:
+bootloader:
 #	Compile the initial program loader in MBR
 	make -C src diskboot
-src/pxeboot:
 #	Compile the PXE boot loader
 	make -C src pxeboot
-src/bootmon:
 #	Compile the boot monitor called from diskboot
 	make -C src bootmon
 
 ## Compile kernel
-src/kernel/kpack:
+kernel: src/kernel/kpack
 	make -C src kpack
 
 ## Create FAT12/16 image
 image: pix.img
-pix.img: bootloader src/kernel/kpack initramfs
+pix.img: bootloader kernel initramfs
 #	Create the boot image
 	@./create_image.sh \
 		src/boot/diskboot \

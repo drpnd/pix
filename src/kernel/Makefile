@@ -54,6 +54,7 @@ kpack: arch/$(ARCH)/asm.o \
 	vmem.o \
 	strfmt.o \
 	sched.o \
+	elf.o \
 	rbtree.o \
 	mpq.o \
 	ramfs.o \
