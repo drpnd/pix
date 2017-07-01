@@ -499,7 +499,7 @@ elft64_load(uint8_t *data, size_t len)
             break;
         case PT_LOAD:
             /* Loadable segment */
-            phdr->p_offset;
+            //phdr->p_offset;
             //hdr->e_phentsize == sizeof(Elf64_Phdr)
             //phdr->p_filesz <= phdr->p_memsz;
             break;
@@ -526,10 +526,10 @@ elft64_load(uint8_t *data, size_t len)
     /* Section headers */
     for ( i = 0; i < hdr->e_shnum; i++ ) {
         shdr = (Elf64_Shdr *)(data + hdr->e_shoff + hdr->e_shentsize * i);
-        shdr->sh_name;
-        shdr->sh_type;
-        shdr->sh_offset;
-        shdr->sh_size;
+        //shdr->sh_name;
+        //shdr->sh_type;
+        //shdr->sh_offset;
+        //shdr->sh_size;
         //printf(" %s\n", shstrn + shdr->sh_name);
     }
 

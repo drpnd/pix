@@ -863,6 +863,12 @@ void sys_debug(int);
 int sys_driver(int, void *);
 int sys_sysarch(int, void *);
 
+/* in exec.c */
+int kexecve(const char *, char *const [], char *const []);
+
+/* in elf.c */
+int elft64_load(uint8_t *, size_t);
+
 /* The followings are mandatory functions for the kernel and should be
    implemented somewhere in arch/<arch_name>/ */
 reg_t bitwidth(reg_t);

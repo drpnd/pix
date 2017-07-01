@@ -674,6 +674,8 @@ int arch_exec(void *, void (*)(void), size_t, int, char *const [],
 int
 sys_execve(const char *path, char *const argv[], char *const envp[])
 {
+    return kexecve(path, argv, envp);
+#if 0
     u64 *initramfs = (u64 *)(INITRAMFS_BASE + 0xc0000000);
     u64 offset = 0;
     u64 size;
@@ -681,8 +683,10 @@ sys_execve(const char *path, char *const argv[], char *const envp[])
     const char *name;
     ssize_t i;
     struct proc *proc;
+    void *data;
 
-    /* Find the file pointed by path from the initramfs */
+    /* Find the file pointed by path from the initramfs to load the program
+       file */
     while ( 0 != *initramfs ) {
         if ( 0 == kstrcmp((char *)initramfs, path) ) {
             offset = *(initramfs + 2);
@@ -696,10 +700,15 @@ sys_execve(const char *path, char *const argv[], char *const envp[])
         return -1;
     }
 
+    /* Program file */
+    data = (void *)(INITRAMFS_BASE + 0xc0000000 + offset);
+
+    /* Get the task and the corresponding process currently running on this
+       processor */
     t = this_ktask();
     proc = t->proc;
 
-    /* Get the name of the process */
+    /* Get the name of the new process */
     name = path;
     for ( i = kstrlen(path) - 1; i >= 0; i-- ) {
         if ( '/' == path[i] ) {
@@ -707,8 +716,8 @@ sys_execve(const char *path, char *const argv[], char *const envp[])
             break;
         }
     }
-    /* Rename the process name */
-    kstrlcpy(proc->name, name, PATH_MAX);
+    /* Replace the process name with the new process */
+    kstrlcpy(proc->name, name, kstrlen(name) + 1);
 
     /* Execute the process */
     arch_exec(t->arch, (void *)(INITRAMFS_BASE + 0xc0000000 + offset), size,
@@ -716,6 +725,7 @@ sys_execve(const char *path, char *const argv[], char *const envp[])
 
     /* On failure */
     return -1;
+#endif
 }
 
 /*
