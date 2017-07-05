@@ -76,7 +76,6 @@ kernload:
 	movl	%ebx,-8(%bp)
 	movl	%ecx,-12(%bp)
 	movl	%edx,-16(%bp)
-	movw	%ds,-18(%bp)
 	movw	%es,-20(%bp)
 	movw	%fs,-22(%bp)
 	movw	%gs,-24(%bp)
@@ -95,9 +94,8 @@ kernload:
 	/* u32 kernel_base -76(%bp) */
 	subw	$76,%sp
 
-	/* Zero %ds and %es */
+	/* Zero %es */
 	xorw	%ax,%ax
-	movw	%ax,%ds
 	movw	%ax,%es
 
 	/* Save the drive number and get the parameter */
@@ -274,7 +272,6 @@ kernload:
 	movw	-24(%bp),%gs
 	movw	-22(%bp),%fs
 	movw	-20(%bp),%es
-	movw	-18(%bp),%ds
 	movl	-16(%bp),%edx
 	movl	-12(%bp),%ecx
 	movl	-8(%bp),%ebx
@@ -301,7 +298,6 @@ find_file:
 	movl	%ebx,-8(%bp)
 	movl	%ecx,-12(%bp)
 	movl	%edx,-16(%bp)
-	movw	%ds,-18(%bp)
 	movw	%es,-20(%bp)
 	movw	%fs,-22(%bp)
 	movw	%gs,-24(%bp)
@@ -355,7 +351,6 @@ find_file:
 	movw	-24(%bp),%gs
 	movw	-22(%bp),%fs
 	movw	-20(%bp),%es
-	movw	-18(%bp),%ds
 	movl	-16(%bp),%edx
 	movl	-8(%bp),%ebx
 	movw	%bp,%sp
@@ -382,7 +377,6 @@ read_file_fat12:
 	movl	%edx,-16(%bp)
 	movl	%edi,-20(%bp)
 	movl	%esi,-24(%bp)
-	movw	%ds,-26(%bp)
 	movw	%es,-28(%bp)
 	/* u32 current cluster -32(%bp) */
 	/* u32 current offset -36(%bp) */
@@ -426,7 +420,6 @@ read_file_fat12:
 	movl	-16(%bp),%edx
 	movl	-20(%bp),%edi
 	movl	-24(%bp),%esi
-	movw	-26(%bp),%ds
 	movw	-28(%bp),%es
 	movw	%bp,%sp
 	popw	%bp
@@ -453,7 +446,6 @@ read_file_fat16:
 	movl	%edx,-16(%bp)
 	movl	%edi,-20(%bp)
 	movl	%esi,-24(%bp)
-	movw	%ds,-26(%bp)
 	movw	%es,-28(%bp)
 	/* u32 current cluster -32(%bp) */
 	/* u32 current offset -36(%bp) */
@@ -497,7 +489,6 @@ read_file_fat16:
 	movl	-16(%bp),%edx
 	movl	-20(%bp),%edi
 	movl	-24(%bp),%esi
-	movw	-26(%bp),%ds
 	movw	-28(%bp),%es
 	movw	%bp,%sp
 	popw	%bp
@@ -520,7 +511,6 @@ fat12_next_cluster:
 	movl	%ebx,-8(%bp)
 	movl	%ecx,-12(%bp)
 	movl	%edx,-16(%bp)
-	movw	%ds,-18(%bp)
 	movw	%es,-20(%bp)
 	subw	$20,%sp
 
@@ -554,7 +544,6 @@ fat12_next_cluster:
 
 	/* Restore registers */
 	movw	-20(%bp),%es
-	movw	-18(%bp),%ds
 	movl	-16(%bp),%edx
 	movl	-8(%bp),%ebx
 	movl	-4(%bp),%eax
@@ -579,7 +568,6 @@ fat16_next_cluster:
 	movl	%ebx,-8(%bp)
 	movl	%ecx,-12(%bp)
 	movl	%edx,-16(%bp)
-	movw	%ds,-18(%bp)
 	movw	%es,-20(%bp)
 	subw	$20,%sp
 
@@ -604,7 +592,6 @@ fat16_next_cluster:
 
 	/* Restore registers */
 	movw	-20(%bp),%es
-	movw	-18(%bp),%ds
 	movl	-16(%bp),%edx
 	movl	-8(%bp),%ebx
 	movl	-4(%bp),%eax
@@ -663,16 +650,16 @@ get_drive_params:
 	jc	1f		/* Error on read */
 	/* Save the sector information */
 	incb	%dh		/* Get # of heads (%dh: last index of heads) */
-	movb	%dh,heads	/* Store */
+	movb	%dh,(heads)	/* Store */
 	movb	%cl,%al		/* %cl[5:0]: last index of sectors per track */
 	andb	$0x3f,%al	/*  N.B., sector starting with 1 */
-	movb	%al,sectors	/* Store */
+	movb	%al,(sectors)	/* Store */
 	movb	%ch,%al		/* %cx[7:6]%cx[15:8]: last index of cylinders */
 				/*  then copy %cx[15:8] to %al */
 	movb	%cl,%ah		/* Lower byte to higher byte */
 	shrb	$6,%ah		/* Pick most significant two bits */
 	incw	%ax		/*  N.B., cylinder starting with 0 */
-	movw	%ax,cylinders
+	movw	%ax,(cylinders)
 	clc			/* Ensure that no error occurred */
 1:
 	popw	%es
@@ -803,7 +790,7 @@ read_sector:
 	ret
 
 
-/* Calculate CHS (%cx[7:6]%cx[15:8] ,%dh, %cx[5:0]) from LBA (%eax) */
+/* Calculate CHS (%cx[7:6]%cx[15:8], %dh, %cx[5:0]) from LBA (%eax) */
 lba2chs:
 	/* Save registers */
 	pushl	%eax
@@ -814,14 +801,14 @@ lba2chs:
 	movw	%bx,%cx
 	movl	%eax,%edx	/* Prepare for the following divw */
 	shrl	$16,%edx	/*  by converting %eax to %dx:%ax */
-	movb	sectors,%bl
+	movb	(sectors),%bl
 	divw	%bx		/* %dx:%ax / %bx; %ax:quotient, %dx:remainder */
 	incb	%dl		/* Sector number is one-based numbering */
 	movb	%dl,%cl		/* Sector: %cx[5:0] */
 	/* Compute head and track (cylinder) numbers */
 	xorw	%bx,%bx
 	movw	%bx,%dx
-	movb	heads,%bl
+	movb	(heads),%bl
 	divw	%bx		/* %dx:%ax / %bx; %ax:cylinder, %dx:head */
 	movb	%al,%ch		/* Cylinder[7:0]: %cx[15:8] */
 	movb	%ah,%bl		/* Take the least significant two bits */
@@ -856,7 +843,7 @@ putc:
 	ret
 
 
-	//.data
+	.data
 
 /* Messages */
 msg_error:

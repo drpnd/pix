@@ -32,6 +32,7 @@
  * Boot monitor (from BIOS)
  *   %cs:%ip=0x0900:0x0000 (=0x9000)
  *   %dl: drive
+ *   %ds: 0x0000
  */
 bootmon:
 	/* Save parameters from IPL */
@@ -70,8 +71,6 @@ get_drive_params:
 	call	enable_a20
 
 	/* Print out boot option message */
-	movw	$0,%ax
-	movw	%ax,%ds
 	movw	$msg_bootopt,%si
 	call	putstr
 
@@ -97,7 +96,7 @@ get_drive_params:
 	call	setup_intvec
 
 	/* Initialize the counter */
-	movw	$BOOT_TIMEOUT*100,(counter)	/* 99 seconds (in centisecond) */
+	movw	$BOOT_TIMEOUT*100,(counter)	/* 3 seconds (in centisecond) */
 
 	/* Start the timer */
 	call	init_pit
@@ -179,7 +178,6 @@ intr_irq0:
 	pushw	%bx
 	pushw	%cx
 	pushw	%dx
-	pushw	%ds
 	pushw	%si
 
 	movw	(counter),%ax	/* Get the previous counter value */
@@ -197,8 +195,6 @@ intr_irq0:
 	addb	$'0',%ah	/* To ascii */
 	movw	%ax,msg_count
 
-	xorw	%ax,%ax
-	movw	%ax,%ds
 	movw	$msg_countdown,%si
 	call	putbstr
 
@@ -208,7 +204,6 @@ intr_irq0:
 
 	/* Restore registers */
 	popw	%si
-	popw	%ds
 	popw	%dx
 	popw	%cx
 	popw	%bx
@@ -658,7 +653,7 @@ lba2chs:
 
 
 
-//	.data
+	.data
 
 /* Messages */
 msg_bootopt:
