@@ -31,24 +31,25 @@ _pmem_buddy_merge(struct pmem *, struct pmem_buddy *, struct pmem_page *, int);
 
 
 /*
- * Allocate 2^order pages from the specified zone of a physical memory region
+ * Allocate 2^order superpages from the specified zone of a physical memory
+ * region
  *
  * SYNOPSIS
  *      void *
- *      pmem_prim_alloc_pages(int zone, int order);
+ *      pmem_prim_alloc_superpages(int zone, int order);
  *
  * DESCRIPTION
- *      The pmem_prim_alloc_pages() function allocates 2^order pages of physical
- *      memory from the zone of a physical memory region specified by the zone
- *      argument.  This function is also called from the kernel memory
- *      management module, so this does not dependent on kmem_ functions.
+ *      The pmem_prim_alloc_superpages() function allocates 2^order superpages
+ *      of physical memory from the zone of a physical memory region specified
+ *      by the zone argument.  This function is also called from the kernel
+ *      memory management module, so this does not dependent on kmem_ functions.
  *
  * RETURN VALUES
- *      The pmem_prim_alloc_pages() function returns a pointer to allocated
+ *      The pmem_prim_alloc_superpages() function returns a pointer to allocated
  *      physical memory.  If there is an error, it returns NULL.
  */
 void *
-pmem_prim_alloc_pages(int zone, int order)
+pmem_prim_alloc_superpages(int zone, int order)
 {
     int ret;
     u32 idx;
@@ -92,15 +93,15 @@ pmem_prim_alloc_pages(int zone, int order)
 }
 
 /*
- * Allocate a page from the specified zone of a physical memory region
+ * Allocate a superpage from the specified zone of a physical memory region
  *
  * SYNOPSIS
  *      void *
  *      pmem_prim_alloc_page(int zone);
  *
  * DESCRIPTION
- *      The pmem_prim_alloc_page() function allocates a pages of physical memory
- *      from the zone of a physical memory region specified by the zone
+ *      The pmem_prim_alloc_page() function allocates a superpages of physical
+ *      memory from the zone of a physical memory region specified by the zone
  *      argument.
  *
  * RETURN VALUES
@@ -108,9 +109,9 @@ pmem_prim_alloc_pages(int zone, int order)
  *      physical memory.  If there is an error, it returns NULL.
  */
 void *
-pmem_prim_alloc_page(int zone)
+pmem_prim_alloc_superpage(int zone)
 {
-    return pmem_prim_alloc_pages(zone, 0);
+    return pmem_prim_alloc_superpages(zone, 0);
 }
 
 /*

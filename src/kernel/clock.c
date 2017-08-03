@@ -21,41 +21,36 @@
  * SOFTWARE.
  */
 
-#include <aos/const.h>
-#include "../../kernel.h"
-#include "arch.h"
+#include "kernel.h"
+#include "clock.h"
 
+/*
+ * Register a clock device
+ */
 int
-ktimer_tsc_init(void **data)
+clock_device_register(struct clock_device *dev)
 {
-    *data = NULL;
-
-    return 0;
+    return -1;
 }
 
+/*
+ * Get precision in nanosecond
+ */
 u64
-ktimer_tsc_usec_since_boot(void *data)
+clock_precision(void)
 {
-    struct cpu_data *pdata;
-    u64 tsc;
-
-    /* Read TSC */
-    tsc = rdtsc();
-
-    /* Calculate the BSP's TSC from the relative counter */
-    pdata = this_cpu();
-    tsc = tsc + pdata->tsc_offset;
-
-    /* TSC to microseconds */
-    return 1000000ULL * tsc / pdata->tsc_freq;
+    return 1000000000ULL / HZ;
 }
 
-struct ktimer_device ktimer_tsc = {
-    .name = "tsc",
-    .precision = 1,
-    .init = ktimer_tsc_init,
-    .get_usec_since_boot = ktimer_tsc_usec_since_boot,
-};
+/*
+ * Get current clock in microsecond
+ */
+u64
+clock_usec(void)
+{
+    /* Use jiffies */
+    return 1000000ULL * g_jiffies / HZ;
+}
 
 /*
  * Local variables:

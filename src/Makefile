@@ -14,16 +14,16 @@ CFLAGS=-I./include -Wall -fleading-underscore -nostdinc -nostdlib -O3 -m64 \
 	-DARCH_X86_64=1 -DPIX_VERSION='"$(VERSION)"'
 
 ## Boot loader
-diskboot:
-	ARCH=${ARCH} make -C boot diskboot
+mbr:
+	ARCH=${ARCH} $(MAKE) -C boot mbr
 bootmon:
-	ARCH=${ARCH} make -C boot bootmon
+	ARCH=${ARCH} $(MAKE) -C boot bootmon
 pxeboot:
-	ARCH=${ARCH} make -C boot pxeboot
+	ARCH=${ARCH} $(MAKE) -C boot pxeboot
 
 ## Kernel
 kpack:
-	ARCH=${ARCH} make -C kernel kpack
+	ARCH=${ARCH} $(MAKE) -C kernel kpack
 
 ## libc
 LIBCOBJS=lib/arch/$(ARCH)/libc.o lib/arch/$(ARCH)/libcasm.o lib/stdio/fio.o \
@@ -77,4 +77,4 @@ clean:
 	rm -f pm
 	rm -f kpack
 	rm -f bootmon
-	rm -f diskboot
+	rm -f mbr

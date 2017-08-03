@@ -60,7 +60,7 @@ sys_pix_malloc(size_t len, void **pa, void **va)
     }
 
     /* Allocate physical memory */
-    paddr = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM, order);
+    paddr = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM, order);
     if ( NULL == paddr ) {
         /* Could not allocate physical memory */
         vmem_free_pages(proc->vmem, vaddr);

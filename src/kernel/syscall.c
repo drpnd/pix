@@ -669,63 +669,10 @@ sys_getgid(void)
  *      it does return to the calling process, an error has occurred; the return
  *      value will be -1.
  */
-int arch_exec(void *, void (*)(void), size_t, int, char *const [],
-              char *const []);
 int
 sys_execve(const char *path, char *const argv[], char *const envp[])
 {
     return kexecve(path, argv, envp);
-#if 0
-    u64 *initramfs = (u64 *)(INITRAMFS_BASE + 0xc0000000);
-    u64 offset = 0;
-    u64 size;
-    struct ktask *t;
-    const char *name;
-    ssize_t i;
-    struct proc *proc;
-    void *data;
-
-    /* Find the file pointed by path from the initramfs to load the program
-       file */
-    while ( 0 != *initramfs ) {
-        if ( 0 == kstrcmp((char *)initramfs, path) ) {
-            offset = *(initramfs + 2);
-            size = *(initramfs + 3);
-            break;
-        }
-        initramfs += 4;
-    }
-    if ( 0 == offset ) {
-        /* Could not find the file */
-        return -1;
-    }
-
-    /* Program file */
-    data = (void *)(INITRAMFS_BASE + 0xc0000000 + offset);
-
-    /* Get the task and the corresponding process currently running on this
-       processor */
-    t = this_ktask();
-    proc = t->proc;
-
-    /* Get the name of the new process */
-    name = path;
-    for ( i = kstrlen(path) - 1; i >= 0; i-- ) {
-        if ( '/' == path[i] ) {
-            name = path + i + 1;
-            break;
-        }
-    }
-    /* Replace the process name with the new process */
-    kstrlcpy(proc->name, name, kstrlen(name) + 1);
-
-    /* Execute the process */
-    arch_exec(t->arch, (void *)(INITRAMFS_BASE + 0xc0000000 + offset), size,
-              KTASK_POLICY_USER, argv, envp);
-
-    /* On failure */
-    return -1;
-#endif
 }
 
 /*
@@ -793,7 +740,7 @@ sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
     }
 
     /* Allocate physical memory */
-    paddr = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM, order);
+    paddr = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM, order);
     if ( NULL == paddr ) {
         /* Could not allocate physical memory */
         vmem_free_pages(proc->vmem, vaddr);
@@ -981,8 +928,7 @@ sys_gettimeofday(struct timeval *__restrict__ tp, void *__restrict__ tzp)
     struct timezone *tz;
 
     if ( NULL != tp ) {
-        //get_usec_since_boot();
-        usec = arch_usec_since_boot();
+        usec = clock_usec();
 
         tp->tv_sec = g_boottime.sec + usec / 1000000;
         usec -= (usec / 1000000) * 1000000;

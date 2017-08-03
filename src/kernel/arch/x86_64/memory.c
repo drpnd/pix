@@ -1121,7 +1121,8 @@ arch_vmem_map(struct vmem_space *space, void *vaddr, void *paddr, int flags)
             vpt = VMEM_PT(avmem->vls[idxpd][idxp]);
 
             /* Delete descendant table */
-            _kmem_mm_page_free(g_kmem, vpt);
+            //_kmem_mm_page_free(g_kmem, vpt);
+            kfree(vpt); // FIXME
         }
 
         /* Remapping */
@@ -1147,7 +1148,8 @@ arch_vmem_map(struct vmem_space *space, void *vaddr, void *paddr, int flags)
         if ( !VMEM_IS_PRESENT(VMEM_PD(avmem->array, idxpd)[idxp])
              || VMEM_IS_PAGE(VMEM_PD(avmem->array, idxpd)[idxp]) ) {
             /* Not present or 2 MiB page, then create a new page table */
-            vpt = _kmem_mm_page_alloc(g_kmem);
+            //vpt = _kmem_mm_page_alloc(g_kmem);
+            vpt = kmalloc(4096); // FIXME
             if ( NULL == vpt ) {
                 return -1;
             }

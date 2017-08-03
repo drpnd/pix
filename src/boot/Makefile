@@ -7,15 +7,15 @@
 #
 
 ## Override the flags
-diskboot: ASFLAGS=-nostdlib -I./arch/$(ARCH)/
+mbr: ASFLAGS=-nostdlib -I./arch/$(ARCH)/
 bootmon: ASFLAGS=-nostdlib -I./arch/$(ARCH)/
 bootmon: CFLAGS=-I../include \
 	-Wall -fleading-underscore -nostdlib -nodefaultlibs -fno-builtin -O3 -m64
 
 pxeboot: ASFLAGS=-nostdlib -I./arch/$(ARCH)/
 
-## IPL
-diskboot: arch/$(ARCH)/diskboot.o
+## IPL in MBR
+mbr: arch/$(ARCH)/diskboot.o
 	$(LD) -N -T mbr.ld -o $@ $^
 
 ## Boot monitor

@@ -105,8 +105,6 @@ isr_loc_tmr(void)
     struct ktimer_event *e;
     struct ktimer_event *etmp;
 
-    /* FIXME: This variable should be CPU-specific value (i.e., one variable per
-       CPU core). */
     g_jiffies++;
 
     e = g_timer.head;

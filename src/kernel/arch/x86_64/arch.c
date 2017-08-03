@@ -253,27 +253,26 @@ invariant_tsc_freq(void)
     model = ((rax & 0xf0) >> 4) | ((rax & 0xf0000) >> 12);
     if ( 0x06 == family ) {
         switch ( model ) {
-        case 0x2a: /* SandyBridge */
-        case 0x2d: /* SandyBridge-E */
-        case 0x3a: /* IvyBridge */
-        case 0x46: /* Skylake */
-        case 0x4e: /* Skylake */
-        case 0x57: /* Xeon Phi */
-            /* 100.00 MHz */
-            return reg * 100000000;
         case 0x1e: /* Nehalem */
         case 0x1a: /* Nehalem */
         case 0x2e: /* Nehalem */
             /* 133.33 MHz */
             return reg * 133330000;
+        case 0x2a: /* SandyBridge */
+        case 0x2d: /* SandyBridge-E */
+        case 0x3a: /* IvyBridge */
+        case 0x3c: /* Haswell */
+        case 0x3d: /* Broadwell */
+        case 0x46: /* Skylake */
+        case 0x4e: /* Skylake */
+        case 0x57: /* Xeon Phi */
+            /* 100.00 MHz */
+            return reg * 100000000;
+        default:
+            /* Presumedly 100.00 MHz for other processors */
+            return reg * 100000000;
         }
     }
-
-    /* Debugging information to support more CPUs */
-    char buf[512];
-    ksnprintf(buf, sizeof(buf), "Unsupported CPU: family = %x, model = %x",
-              family, model);
-    panic(buf);
 
     return 0;
 }
@@ -409,7 +408,7 @@ bsp_init(void)
     /* Check Invariant TSC support */
     pdata->tsc_freq = invariant_tsc_freq();
     if ( !pdata->tsc_freq ) {
-        panic("Fatal: Invariant TSC is not supported on this CPU.");
+        //panic("Fatal: Invariant TSC is not supported on this CPU.");
     }
 
     /* Read RTC and TSC */
@@ -528,7 +527,7 @@ ap_init(void)
     /* Check Invariant TSC support */
     pdata->tsc_freq = invariant_tsc_freq();
     if ( !pdata->tsc_freq ) {
-        panic("Fatal: Invariant TSC is not supported on this CPU.");
+        //panic("Fatal: Invariant TSC is not supported on this CPU.");
     }
 
     /* Read TSC to calculate the offset to the BSP */
@@ -651,8 +650,8 @@ arch_exec(struct arch_task *t, void (*entry)(void), size_t size, int policy,
 
     /* For exec */
     void *paddr;
-    paddr = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM,
-                                  bitwidth(DIV_CEIL(size, SUPERPAGESIZE)));
+    paddr = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM,
+                                       bitwidth(DIV_CEIL(size, SUPERPAGESIZE)));
     if ( NULL == paddr ) {
         return -1;
     }
@@ -699,24 +698,18 @@ arch_exec(struct arch_task *t, void (*entry)(void), size_t size, int policy,
 }
 
 /*
- * Get the current time stamp in microseconds since boot
+ * Execute a process
  */
-u64
-arch_usec_since_boot(void)
+int
+arch_exec2(struct arch_task *t, void (*entry)(void), size_t size, int policy,
+           char *const argv[], char *const envp[])
 {
-    struct cpu_data *pdata;
-    u64 tsc;
+    //arch_kmem_addr_v2p(g_kmem)
 
-    /* Read TSC */
-    tsc = rdtsc();
-
-    /* Calculate the BSP's TSC from the relative counter */
-    pdata = this_cpu();
-    tsc = tsc + pdata->tsc_offset;
-
-    /* TSC to microseconds */
-    return 1000000ULL * tsc / pdata->tsc_freq;
+    /* Never reach here but add this to prevent a compiler error */
+    return -1;
 }
+
 
 /*
  * Run a task on a processor

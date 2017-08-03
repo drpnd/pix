@@ -21,34 +21,35 @@
  * SOFTWARE.
  */
 
-#ifndef _KTIMER_H
-#define _KTIMER_H
-
 #include <aos/const.h>
-#include <aos/types.h>
-
-enum {
-    KTIMER_PER_CORE,
-    KTIMER_GLOBAL,
-};
+#include "../../kernel.h"
+#include "arch.h"
 
 /*
- * Kernel timer device API
+ * Get the elapsed time in microsecond using TSC
  */
-struct ktimer_device {
-    /* Driver name */
-    const char *name;
-    /* Precision in nanosecond */
-    u64 precision;
-    /* Flags */
-    u32 flags;
-    /* Interface functions */
-    u64 (*get_usec_since_boot)(void *);
+u64
+clock_tsc_usec_since_boot(struct clock_device *data)
+{
+    struct cpu_data *pdata;
+    u64 tsc;
+
+    /* Read TSC */
+    tsc = rdtsc();
+
+    /* Calculate the BSP's TSC from the relative counter */
+    pdata = this_cpu();
+    tsc = tsc + pdata->tsc_offset;
+
+    /* TSC to microseconds */
+    return 1000000ULL * tsc / pdata->tsc_freq;
+}
+
+struct clock_device clock_tsc = {
+    .name = "tsc",
+    .precision = 1,
+    .get_usec = clock_tsc_usec_since_boot,
 };
-
-int ktimer_device_register(struct ktimer_device *);
-
-#endif /* _KTIMER_H */
 
 /*
  * Local variables:

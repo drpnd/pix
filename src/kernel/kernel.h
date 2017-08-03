@@ -25,6 +25,7 @@
 #define _KERNEL_H
 
 #include "ktimer.h"
+#include "clock.h"
 #include <aos/const.h>
 #include <aos/types.h>
 #include <sys/resource.h>
@@ -703,6 +704,21 @@ struct ktimer_devices {
     struct ktimer_device_entry *devices;
 };
 
+/*
+ * Clock device API
+ */
+struct clock_device_entry {
+    /* Device definition */
+    struct clock_device dev;
+    /* Device-defined data */
+    void *data;
+    /* Pointer to the next device */
+    struct clock_device *next;
+};
+struct clock_devices {
+    struct clock_device_entry *devices;
+};
+
 
 /* Kernel event handler */
 typedef void (*kevent_handler_f)(void);
@@ -736,7 +752,7 @@ struct kernel_variables {
     struct ktask_root *ktask_root;
     void *syscall_table[SYS_MAXSYSCALL];
     struct interrupt_handler_table *intr_table;
-    /* Boot-up time */
+    /* Boot-up time in Unix time */
     struct {
         u64 sec;
         u64 usec;
@@ -748,9 +764,14 @@ struct kernel_variables {
     } timesync;
     /* Timer */
     struct ktimer timer;
+    /* Selected clock device */
+    struct clock_device *clkdev;
+    /* Jiffies */
     reg_t jiffies;
     /* Timer devices */
     struct ktimer_devices *tmrdev;
+    /* Clock devices */
+    struct clock_devices *clkdevs;
     /* devfs */
     struct devfs devfs;
 };
@@ -818,12 +839,12 @@ void vmem_return_pages(struct vmem_page *);
 
 /* in kmem.c */
 int kmem_buddy_init(struct kmem *);
-void * kmem_alloc_pages(struct kmem *, size_t, int);
+void * kmem_prim_alloc_superpages(struct kmem *, size_t, int);
 void kmem_free_pages(struct kmem *, void *);
 
 /* in pmem.c */
-void * pmem_prim_alloc_pages(int, int);
-void * pmem_prim_alloc_page(int);
+void * pmem_prim_alloc_superpages(int, int);
+void * pmem_prim_alloc_superpage(int);
 void pmem_prim_free_pages(void *);
 
 /* in ramfs.c */
@@ -897,7 +918,8 @@ void arch_switch_page_table(struct vmem_space *);
 int arch_load_cpu_table(struct syspix_cpu_table *);
 int arch_store_cpu_table(struct syspix_cpu_table *);
 
-u64 arch_usec_since_boot(void);
+/* in clock.c */
+u64 clock_usec(void);
 
 #endif /* _KERNEL_H */
 

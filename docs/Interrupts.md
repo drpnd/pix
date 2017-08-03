@@ -42,6 +42,28 @@
 | --        | Triple Fault                            |            | N          |
 
 
+## Exceptions to POSIX signals
+* #DE SIGFPE
+* #DB ?
+* #BP SIGTRAP
+* #OF ?
+* #BR ?
+* #UD SIGILL
+* #NM ?
+* #DF ?
+* #TS ?
+* #NP SIGSEGV
+* #SS SIGSEGV
+* #GP SIGSEGV (SIGBUS?)
+* #PF kernel => SIGSEGV
+* #MF SIGFPE
+* #AC SIGSEGV
+* #MC ?
+* #XM/#XF SIGFPE
+* #VE kernel/hypervisor
+* #SX SIGSEGV
+
+
 ## IRQs
 
 | IRQ | Description                             |

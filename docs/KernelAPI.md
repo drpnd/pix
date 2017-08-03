@@ -7,14 +7,26 @@
 * `0x01000000--0xffffffff` (16 MiB--4 GiB): LOWMEM for NUMA-unaware space
 * `>=0x100000000`: UMA/NUMA(n) for NUMA-aware zones
 
+### Physical page allocator
+* pmem_prim_alloc_pages(): Allocate superpages from the specified zone
+* pmem_alloc_pages(): Allocate pages
+
 ### Low-level
-* pgalloc(): Allocate physical pages (physically contiguous)
+* kmem_prim_alloc_page(): Page allocator that is called from arch_vmem_map(),
+  pmem_prim_alloc_pages(), and kmem_prim_alloc_pages()
+
+* pgalloc(): Allocate pages (physically contiguous)
 
 ### High-level
-* kmalloc(): Allocate kernel memory (physically and virtually contiguous)
-* vmalloc(): Allocate kernel memory (virtually contiguous)
+* Kernel memory allocators
+  * kmalloc(): Allocate kernel memory (physically and virtually contiguous)
+  * vmalloc(): Allocate kernel memory (virtually contiguous)
+  * kfree(): Release kernel memory
+* Userland memory allocators (in kernel)
+  * uvmalloc(): Allocate memory (virtually contiguous) in the virtual memory
+    region of the current process
 
-### Userland memory
+### System call
 * mmap(): System call to allocate memory (high-level)
 
 ### Backend (not exposed to the kernel)
@@ -28,38 +40,75 @@
 
 > Make sure not to create any circle dependencies!
 
+* kmem_alloc_page()
+* kmem_prim_alloc_superpages()
+* pmem_prim_alloc_superpages()
+
+* kmem_alloc_pages()
+* pmem_alloc_pages()
+
 * kmem_alloc_pages(): allocate contiguous 2^n superpages (wired) using
   pmem_alloc_pages(), i.e., from the LOWMEM zone
-* pmem_alloc_pages(): allocate contiguous 2^n superpages (physical) from the
-  LOWMEM zone
+* pmem_prim_alloc_pages(): allocate contiguous 2^n superpages (physical) from
+  the specified zone
 
-
-    kmem_cache_create()
-      |
-      +-> kmalloc()
-           |
-           +-> kmem_alloc_pages() -> arch_kmem_map()
-           |      |
-           |      v
-           +----> pmem_alloc_pages()
-
---
 
 #### Kernel memory allocator
+
     kmalloc()
       |
-      +-> arch_kmem_map() -> kmem_mm_page_alloc()/kmem_mm_page_free()
+      +-> kmem_alloc_pages() -> arch_kmem_map()
       |
       |
       +-> pmem_alloc_pages()
 
+    # 4K-page allocation
+    kmem_prim_alloc_page()
+      |
+      +-> kmem_prim_alloc_superpage() -> arch_kmem_map()
+      |
+      |
+      +-> pmem_prim_alloc_superpage()
+
+
+    kmem_prim_alloc_pages()
+      |
+      +-> kmem_alloc_pages() -> arch_kmem_map()
+      |     |                        Use 4K-pages
+      |     v
+      +-> pmem_prim_alloc_pages()
+
 #### Virtual memory allocator
-    vmalloc()
+
+    uvmalloc()
       |
-      +-> arch_vmem_map() -> kmalloc()
+      +-> arch_vmem_map() -> kmalloc() (4K-pages)
       |
       |
-      +-> pmem_alloc_pages()
+      +-> pgalloc() -> kmalloc() (4K-pages)
+           |
+           +-> pmem_prim_alloc_pages()
+
+### Memory allocation
+
+    [S]mmap()        [K]kmalloc()/vmalloc()
+        |                |
+        v                |
+    [K]pgalloc()<--------+
+        |
+        +-----------+
+        |           |
+        v           |
+    [K]pg_map()-----+---->[K]primalloc()
+
+* Page allocation
+  1. Allocate virtual pages
+  1. Allocate physical pages if necessary
+  1. Set up page table (with right access right)
+* On page fault
+  1. Allocate physical memory
+  1. Set up page table
+
 
 
 ### Options
@@ -67,5 +116,15 @@
 * Contiguous / Non-contiguous
 * Zone (DMA, LowMem, HighMem)
 * NUMA domain
+
+## Clock & Timer
+### Clock
+To get the current clock
+* [MANDATORY] Jiffies: Using PIT or local APIC. Updated by BSP, read from BSP and APs.
+* TSC: Per core
+
+### Timer
+To fire interrupts
+* Local APIC timer
 
 ## Inter-Process Communication

@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -145,8 +145,8 @@ task_create(struct proc *proc, void *(*restart_point)(void *), void *args)
     t->ktask->proc->tasks = t->ktask;
     t->ktask->next = NULL;
     /* Allocate the user stack of a new task */
-    paddr1 = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM,
-                                   bitwidth(USTACK_SIZE / SUPERPAGESIZE));
+    paddr1 = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM,
+                                        bitwidth(USTACK_SIZE / SUPERPAGESIZE));
     if ( NULL == paddr1 ) {
         kfree(t->ktask);
         kfree(t->kstack);
@@ -271,8 +271,8 @@ proc_fork(struct proc *op, struct ktask *ot, struct ktask **ntp)
     t->ktask->proc->tasks = t->ktask;
     t->ktask->next = NULL;
     /* Allocate the user stack of a new task */
-    paddr1 = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM,
-                                   bitwidth(USTACK_SIZE / SUPERPAGESIZE));
+    paddr1 = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM,
+                                        bitwidth(USTACK_SIZE / SUPERPAGESIZE));
     if ( NULL == paddr1 ) {
         kfree(t->ktask);
         kfree(t->kstack);
@@ -293,8 +293,8 @@ proc_fork(struct proc *op, struct ktask *ot, struct ktask **ntp)
         kfree(np);
         return NULL;
     }
-    paddr2 = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM,
-                                   bitwidth(DIV_CEIL(size, SUPERPAGESIZE)));
+    paddr2 = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM,
+                                        bitwidth(DIV_CEIL(size, SUPERPAGESIZE)));
     if ( NULL == paddr2 ) {
         pmem_prim_free_pages(paddr1);
         kfree(t->ktask);
@@ -590,15 +590,16 @@ proc_create(const char *path, const char *name, pid_t pid)
     }
 
     /* Prepare the user stack */
-    ppage1 = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM,
-                                   bitwidth(USTACK_SIZE / SUPERPAGESIZE));
+    ppage1 = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM,
+                                        bitwidth(USTACK_SIZE / SUPERPAGESIZE));
     if ( NULL == ppage1 ) {
         goto error_ustack;
     }
 
     /* Prepare exec */
-    ppage2 = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM,
-                                   bitwidth(DIV_CEIL(size, SUPERPAGESIZE)));
+    ppage2 = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM,
+                                        bitwidth(DIV_CEIL(size,
+                                                          SUPERPAGESIZE)));
     if ( NULL == ppage2 ) {
         goto error_exec;
         return -1;

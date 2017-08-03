@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2015-2016 Hirochika Asai
+# Copyright (c) 2015-2017 Hirochika Asai
 # All rights reserved.
 #
 # Authors:
@@ -9,15 +9,18 @@
 ## Define version
 VERSION = nightly-build-$(shell date +%Y%m%d-%H%M%S)
 
+## Phony target
+.PHONY: all image bootloader initrd kernel
+
 ## "make all" is not supported.
 all:
 	@echo "make all is not currently supported."
 
 ## Compile initramfs (including kernel as well)
-initramfs:
+initrd:
 #	Compile programs
-	VERSION=${VERSION} make -C src init pm tty pash pci fe
-#       Create an image
+	VERSION=${VERSION} $(MAKE) -C src init pm tty pash pci fe
+#       Create initramfs image
 	@./create_initrd.sh \
 		init:/servers/init \
 		pm:/servers/pm \
@@ -29,22 +32,22 @@ initramfs:
 ## Compile boot loader
 bootloader:
 #	Compile the initial program loader in MBR
-	make -C src diskboot
+	$(MAKE) -C src mbr
 #	Compile the PXE boot loader
-	make -C src pxeboot
-#	Compile the boot monitor called from diskboot
-	make -C src bootmon
+	$(MAKE) -C src pxeboot
+#	Compile the boot monitor called from mbr
+	$(MAKE) -C src bootmon
 
 ## Compile kernel
-kernel: src/kernel/kpack
-	make -C src kpack
+kernel:
+	$(MAKE) -C src kpack
 
 ## Create FAT12/16 image
 image: pix.img
-pix.img: bootloader kernel initramfs
+pix.img: bootloader kernel initrd
 #	Create the boot image
 	@./create_image.sh \
-		src/boot/diskboot \
+		src/boot/mbr \
 		src/boot/bootmon \
 		src/kernel/kpack \
 		initramfs
@@ -59,10 +62,10 @@ pix.vmdk: pix.img
 
 ## Test
 test:
-	make -C src/tests test-all
+	$(MAKE) -C src/tests test-all
 
 ## Clean
 clean:
-	make -C src clean
+	$(MAKE) -C src clean
 	rm -f initramfs
 	rm -f pix.img

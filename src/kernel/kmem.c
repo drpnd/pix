@@ -29,16 +29,16 @@
 
 
 /* Prototype declarations */
-static void * _kmem_alloc_pages(struct kmem *, int, int);
+static void * _kmem_prim_alloc_superpages(struct kmem *, int, int);
 static void _kmem_free_pages(struct kmem *, void *);
 static struct kmem_page * _kmem_grab_pages(struct kmem *, int);
 static void _kmem_return_pages(struct kmem *, struct kmem_page *);
 
 /*
- * Allocate pages
+ * Allocate superpages
  */
 void *
-kmem_alloc_pages(struct kmem *kmem, size_t npg, int zone)
+kmem_prim_alloc_superpages(struct kmem *kmem, size_t npg, int zone)
 {
     int order;
     void *vaddr;
@@ -48,7 +48,7 @@ kmem_alloc_pages(struct kmem *kmem, size_t npg, int zone)
     order = bitwidth(npg);
 
     /* Allocate 2^order pages */
-    vaddr = _kmem_alloc_pages(kmem, order, zone);
+    vaddr = _kmem_prim_alloc_superpages(kmem, order, zone);
 
     return vaddr;
 }
@@ -66,7 +66,7 @@ kmem_free_pages(struct kmem *kmem, void *ptr)
  * Allocate physically and virtually contiguous 2^order pages (superpage-size)
  */
 static void *
-_kmem_alloc_pages(struct kmem *kmem, int order, int zone)
+_kmem_prim_alloc_superpages(struct kmem *kmem, int order, int zone)
 {
     struct kmem_page *pg;
     void *vaddr;
@@ -85,7 +85,7 @@ _kmem_alloc_pages(struct kmem *kmem, int order, int zone)
     vaddr = kmem->space->start + SUPERPAGE_ADDR(pg - kmem->space->pages);
 
     /* Allocate contiguous 2^order physical pages */
-    paddr = pmem_prim_alloc_pages(zone, order);
+    paddr = pmem_prim_alloc_superpages(zone, order);
     if ( NULL == paddr ) {
         /* Release the virtual memory */
         _kmem_return_pages(kmem, pg);

@@ -116,7 +116,6 @@ int
 execve_elf(const char *name, void *data, size_t size, char *const argv[],
            char *const envp[])
 {
-
     return -1;
 }
 
@@ -128,6 +127,11 @@ execve_raw(const char *name, void *data, size_t size, char *const argv[],
 {
     struct ktask *t;
     struct proc *proc;
+    void *code;
+
+    /* Allocate memory for the code */
+    code = kmalloc(size);
+    kfree(code);
 
     /* Get the task and the corresponding process currently running on this
        processor */

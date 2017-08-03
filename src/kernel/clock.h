@@ -21,21 +21,21 @@
  * SOFTWARE.
  */
 
-#ifndef _KTIMER_H
-#define _KTIMER_H
+#ifndef _CLOCK_H
+#define _CLOCK_H
 
 #include <aos/const.h>
 #include <aos/types.h>
 
 enum {
-    KTIMER_PER_CORE,
-    KTIMER_GLOBAL,
+    CLOCK_PER_CORE,
+    CLOCK_GLOBAL,
 };
 
 /*
- * Kernel timer device API
+ * Kernel clock device API
  */
-struct ktimer_device {
+struct clock_device {
     /* Driver name */
     const char *name;
     /* Precision in nanosecond */
@@ -43,12 +43,12 @@ struct ktimer_device {
     /* Flags */
     u32 flags;
     /* Interface functions */
-    u64 (*get_usec_since_boot)(void *);
+    u64 (*get_usec)(struct clock_device *);
 };
 
-int ktimer_device_register(struct ktimer_device *);
+int clock_device_register(struct clock_device *);
 
-#endif /* _KTIMER_H */
+#endif /* _CLOCK_H */
 
 /*
  * Local variables:

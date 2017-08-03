@@ -59,7 +59,7 @@ vmem_alloc_pages(struct vmem_space *space, int order)
     }
 
     /* Allocate physical pages */
-    paddr = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM, order);
+    paddr = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM, order);
     if ( NULL == paddr ) {
         return NULL;
     }
@@ -78,7 +78,7 @@ vmem_alloc_pages(struct vmem_space *space, int order)
             + PAGE_ADDR(pg - pg->superpage->u.page.pages);
 
         /* Allocate physical memory */
-        paddr = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM, order);
+        paddr = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM, order);
         if ( NULL == paddr ) {
             /* Release the virtual memory */
             vmem_return_pages(pg);
@@ -106,7 +106,7 @@ vmem_alloc_pages(struct vmem_space *space, int order)
             + SUPERPAGE_ADDR(spg - spg->region->superpages);
 
         /* Allocate physical memory */
-        paddr = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM, order);
+        paddr = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM, order);
         if ( NULL == paddr ) {
             /* Release the virtual memory */
             vmem_return_superpages(spg);
@@ -1022,7 +1022,7 @@ _vmem_superpage_to_pages(struct vmem_region *reg, struct vmem_superpage *spg)
     order = bitwidth(DIV_CEIL(sz, PAGESIZE));
 
     /* Allocate physical memory */
-    paddr = pmem_prim_alloc_pages(PMEM_ZONE_LOWMEM, order);
+    paddr = pmem_prim_alloc_superpages(PMEM_ZONE_LOWMEM, order);
 
     /* Allocate virtual memory */
 

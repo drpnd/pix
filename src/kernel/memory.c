@@ -53,9 +53,10 @@ pgalloc(int zone, size_t nr)
 
     addr = 0;
     if ( nr < (1 << SP_SHIFT) ) {
-        addr = (reg_t)pmem_prim_alloc_pages(zone, 0);
+        addr = (reg_t)pmem_prim_alloc_superpages(zone, 0);
     } else {
-        addr = (reg_t)pmem_prim_alloc_pages(zone, bitwidth(nr >> SP_SHIFT));
+        addr = (reg_t)pmem_prim_alloc_superpages(zone,
+                                                 bitwidth(nr >> SP_SHIFT));
     }
 
     return addr;
@@ -229,7 +230,7 @@ _kmalloc_slab_new(struct kmem *kmem, size_t o, int zone)
     /* Align the page to fit to the buddy system, and get the order */
     nr = DIV_CEIL(s, SUPERPAGESIZE);
     /* Allocate pages */
-    hdr = kmem_alloc_pages(kmem, nr, zone);
+    hdr = kmem_prim_alloc_superpages(kmem, nr, zone);
     if ( NULL == hdr ) {
         return NULL;
     }
@@ -302,7 +303,7 @@ _kmalloc_pages(struct kmem *kmem, size_t size, int zone)
     spin_lock(&kmem->slab_lock);
 
     /* Large object: Page allocator */
-    ptr = kmem_alloc_pages(kmem, DIV_CEIL(size, SUPERPAGESIZE), zone);
+    ptr = kmem_prim_alloc_superpages(kmem, DIV_CEIL(size, SUPERPAGESIZE), zone);
 
     /* Unlock */
     spin_unlock(&kmem->slab_lock);
