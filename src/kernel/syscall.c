@@ -970,6 +970,13 @@ sys_reboot(int howto)
     if ( howto & RB_HALT ) {
         /* Halt */
         acpi_poweroff(NULL);
+        /* APM off (bochs/qemu) */
+        const char *s = "Shutdown";
+        while ( *s ) {
+            outb(0x8900, *s);
+            s++;
+        }
+        outb(0xf4, 0x00);
     } else {
         /* Reboot */
         int c;
