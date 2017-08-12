@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,12 +21,15 @@
  * SOFTWARE.
  */
 
-#ifndef _STDINT_H
-#define _STDINT_H
+#ifndef _SYS_TTYCOM_H
+#define _SYS_TTYCOM_H
 
-#include <aos/types.h>
+#include <sys/ioccom.h>
 
-#endif /* _SIGINT_H */
+#define TIOCGETA        _IOR('t', 19, struct termios) /* get termios struct */
+#define TIOCSETA        _IOW('t', 20, struct termios) /* set termios struct */
+
+#endif /* _SYS_TTYCOM_H */
 
 /*
  * Local variables:

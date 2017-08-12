@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2016-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -101,6 +101,9 @@
 #define TOSTOP  0x00400000      /* stop background jobs from output */
 #define NOFLSH  0x80000000      /* don't flush after interrupt */
 
+#define TCSANOW     0
+#define TCSADRAIN   1
+#define TCSAFLUSH   2
 
 typedef unsigned char   cc_t;
 typedef unsigned long   tcflag_t;
@@ -115,10 +118,8 @@ struct termios {
     speed_t ospeed;             /* output speed */
 };
 
-int tcgetattr(int fildes, struct termios *termios_p);
-int
-tcsetattr(int fildes, int optional_actions, const struct termios *termios_p);
-
+int tcgetattr(int, struct termios *);
+int tcsetattr(int, int, const struct termios *);
 
 #endif /* _TERMIOS_H */
 

@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2016-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -42,7 +42,7 @@ struct pash_module_api {
     int (*clear)(struct pash *pash, char *args[]);
     int (*help)(struct pash *pash, char *args[]);
     int (*request)(struct pash *pash, char *args[]);
-    int (*show)(struct pash *pash, char *args[]);
+    int (*get)(struct pash *pash, char *args[]);
 };
 
 struct pash_module {
@@ -61,7 +61,13 @@ enum pash_builtin_command {
     PASH_BUILTIN_CLEAR,
     PASH_BUILTIN_HELP,
     PASH_BUILTIN_REQUEST,
-    PASH_BUILTIN_SHOW,
+    PASH_BUILTIN_GET_CONFIG,
+    PASH_BUILTIN_EDIT_CONFIG,
+    PASH_BUILTIN_COPY_CONFIG,
+    PASH_BUILTIN_DELETE_CONFIG,
+    PASH_BUILTIN_LOCK,
+    PASH_BUILTIN_UNLOCK,
+    PASH_BUILTIN_GET,
 };
 struct pash_command {
     enum pash_builtin_command type;

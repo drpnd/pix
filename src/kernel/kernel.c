@@ -23,6 +23,7 @@
 
 #include <aos/const.h>
 #include <sys/syscall.h>
+#include <signal.h>
 #include "kernel.h"
 
 /*
@@ -95,16 +96,21 @@ kmain(void)
 }
 
 /*
- * Local APIC timer
- * Low-level scheduler (just loading run queue)
+ * Kernel signals (called from architecture-specific interrupt handlers)
+ */
+
+/*
+ * Clock signal
+ * Run low-level scheduler (just loading run queue)
  */
 void
-isr_loc_tmr(void)
+ksignal_clock(void)
 {
     struct ktask *ktask;
     struct ktimer_event *e;
     struct ktimer_event *etmp;
 
+    /* Increment jiffies */
     g_jiffies++;
 
     e = g_timer.head;
@@ -139,6 +145,74 @@ isr_loc_tmr(void)
 }
 
 /*
+ * Trap (SIGTRAP)
+ */
+int
+ksignal_trap(struct ktask *task, void *ip)
+{
+    if ( NULL != task && NULL != task->proc ) {
+        task->proc->siginfo.si_addr = ip;
+
+        return 0;
+    }
+
+    return -1;
+}
+
+/*
+ * Floating point exception (SIGFPE)
+ */
+int
+ksignal_fpe(struct ktask *task, void *ip)
+{
+    if ( NULL != task && NULL != task->proc ) {
+        task->proc->siginfo.si_addr = ip;
+
+        return 0;
+    }
+
+    return -1;
+}
+
+/*
+ * Segmentation fault (SIGSEGV)
+ */
+int
+ksignal_segv(struct ktask *task, void *ip, void *addr)
+{
+    if ( NULL != task && NULL != task->proc ) {
+        task->proc->siginfo.si_addr = ip;
+
+        return 0;
+    }
+
+    return -1;
+}
+
+/*
+ * Page fault
+ */
+int
+ksignal_pf(struct ktask *task, void *ip, void *addr, int flags)
+{
+    /* Currently, we don't support kernel's page fault */
+    if ( !(flags & PAGEFAULT_USER) ) {
+        return -1;
+    }
+
+    /* Check the reason of the page fault */
+    if ( !(flags & PAGEFAULT_PRESENT) ) {
+        /* The page is not present, then check the swap space. */
+        /* However, swap is currently not implemented, so raise SIGSEGV
+           immediately. */
+        return ksignal_segv(task, ip, addr);
+    } else {
+        /* The page is present but no access right, then raise SIGSEGV. */
+        return ksignal_segv(task, ip, addr);
+    }
+}
+
+/*
  * PIX interprocessor interrupts
  */
 void
@@ -149,8 +223,8 @@ isr_pixipi(void)
 /*
  * Run an interrupt handler for IRQ interrupt
  */
-static void
-_irq_handler(u64 vec)
+void
+kirq_handler(u64 vec)
 {
     struct ktask *tmp;
     struct interrupt_handler_list *e;
@@ -178,33 +252,8 @@ void
 kintr_isr(u64 vec)
 {
     switch ( vec ) {
-    case IV_LOC_TMR:
-        isr_loc_tmr();
-        break;
     case IV_PIXIPI:
         isr_pixipi();
-        break;
-    case IV_IRQ(0):
-    case IV_IRQ(1):
-    case IV_IRQ(2):
-    case IV_IRQ(3):
-    case IV_IRQ(4):
-    case IV_IRQ(5):
-    case IV_IRQ(6):
-    case IV_IRQ(7):
-    case IV_IRQ(8):
-    case IV_IRQ(9):
-    case IV_IRQ(10):
-    case IV_IRQ(11):
-    case IV_IRQ(12):
-    case IV_IRQ(13):
-    case IV_IRQ(14):
-    case IV_IRQ(15):
-    case IV_IRQ(16):
-    case IV_IRQ(17):
-    case IV_IRQ(18):
-    case IV_IRQ(19):
-        _irq_handler(vec);
         break;
     default:
         ;

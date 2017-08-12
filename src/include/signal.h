@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,12 +21,29 @@
  * SOFTWARE.
  */
 
-#ifndef _STDINT_H
-#define _STDINT_H
+#ifndef _SIGNAL_H
+#define _SIGNAL_H
 
-#include <aos/types.h>
+#include <unistd.h>
 
-#endif /* _SIGINT_H */
+union sigval {
+    int sigval_int;
+    void *sigval_ptr;
+};
+
+typedef struct {
+    int si_signo;               /* signal number */
+    int si_errno;               /* errno association */
+    int si_code;                /* signal code */
+    pid_t si_pid;               /* sending process */
+    uid_t si_uid;               /* sender's ruid */
+    int si_status;              /* exit value */
+    void *si_addr;              /* faulting instruction */
+    union sigval si_value;      /* signal value */
+    long si_band;               /* band event for SIGPOLL */
+} siginfo_t;
+
+#endif /* _SIGNAL_H */
 
 /*
  * Local variables:

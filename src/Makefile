@@ -27,7 +27,7 @@ kpack:
 
 ## libc
 LIBCOBJS=lib/arch/$(ARCH)/libc.o lib/arch/$(ARCH)/libcasm.o lib/stdio/fio.o \
-	lib/stdio/print.o lib/string/str.o
+	lib/stdio/print.o lib/string/str.o lib/termios/termios.o
 LIBPIXOBJS=lib/pix/libpix.o
 lib/arch/$(ARCH)/libc.o: lib/crt0.o
 
@@ -73,6 +73,7 @@ vmx: drivers/vmx/vmx.o $(LIBCOBJS)
 ## Clean
 clean:
 	find . -name "*.o" | xargs rm -f
+	find . -name "*.a" | xargs rm -f
 	rm -f init
 	rm -f pm
 	rm -f kpack

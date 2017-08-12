@@ -103,6 +103,7 @@ main(int argc, char *argv[])
         ;
     }
 
+#if 1
     /* fork */
     pid = fork();
     switch ( pid ) {
@@ -122,6 +123,7 @@ main(int argc, char *argv[])
         /* The parent process */
         ;
     }
+#endif
 
     struct timespec tm;
     tm.tv_sec = 1;

@@ -948,6 +948,33 @@ sys_gettimeofday(struct timeval *__restrict__ tp, void *__restrict__ tzp)
 }
 
 /*
+ * Control device
+ *
+ * SYNOPSIS
+ *      int
+ *      sys_ioctl(int fildes, unsigned long request, ...);
+ *
+ * DESCRIPTION
+ *      The ioctl() function manipulates the underlying device parameters of
+ *      special files.  In particular, many operating characteristics of
+ *      character special files (e.g., terminals) may be controlled with ioctl()
+ *      requests.  The argument fildes must be an open file descriptor.
+ *
+ *      An ioctl request has encoded in it whether the argument is an ``in''
+ *      parameter or ``out'' parameter, and the size of the argument argp in
+ *      bytes.  Macros and defines used in specifying and ioctl request are
+ *      located in the file <sys/ioctl.h>.
+ *
+ * RETURN VALUES
+ *      If an error has occured, a value of -1 is returned.
+ */
+int
+sys_ioctl(int fildes, unsigned long request, ...)
+{
+    return -1;
+}
+
+/*
  * Reboot system or halt processor
  *
  * SYNOPSIS

@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/pix.h>
+#include <termios.h>
 #include "pash.h"
 
 static struct pash_command pash_cmds[] = {
@@ -46,9 +47,19 @@ static struct pash_command pash_cmds[] = {
         .desc = "Request to execute command",
     },
     {
-        .type = PASH_BUILTIN_SHOW,
-        .name = "show",
-        .desc = "Display running system information",
+        .type = PASH_BUILTIN_GET_CONFIG,
+        .name = "get-config",
+        .desc = "Retrieve all or part of a specified configuration datastore.",
+    },
+    {
+        .type = PASH_BUILTIN_DELETE_CONFIG,
+        .name = "delete-config",
+        .desc = "Delete a configuration datastore.",
+    },
+    {
+        .type = PASH_BUILTIN_GET,
+        .name = "get",
+        .desc = "Retrieve running configuration and device state information.",
     },
 };
 
@@ -237,10 +248,10 @@ pash_builtin_request(struct pash *pash, char *args[])
 }
 
 /*
- * Show
+ * Get
  */
 int
-pash_builtin_show(struct pash *pash, char *args[])
+pash_builtin_get(struct pash *pash, char *args[])
 {
     const char *name;
     struct pash_module *m;
@@ -259,8 +270,8 @@ pash_builtin_show(struct pash *pash, char *args[])
     }
     if ( NULL == m->work_next ) {
         /* Matches then execute */
-        if ( NULL != m->api.show ) {
-            return m->api.show(pash, args);
+        if ( NULL != m->api.get ) {
+            return m->api.get(pash, args);
         } else {
             fprintf(stderr, "pash: %s : module not found: %s\n", args[0], name);
             return -1;
@@ -331,8 +342,8 @@ pash_execute(struct pash *pash, const char *cmd)
             ret = pash_builtin_help(pash, args);
         } else if ( 0 == strcmp("request", c->name) ) {
             ret = pash_builtin_request(pash, args);
-        } else if ( 0 == strcmp("show", c->name) ) {
-            ret = pash_builtin_show(pash, args);
+        } else if ( 0 == strcmp("get", c->name) ) {
+            ret = pash_builtin_get(pash, args);
         } else {
             ret = -1;
         }
@@ -367,6 +378,8 @@ main(int argc, char *argv[])
     char *cmd;
     struct pash *pash;
     char *lasts;
+    struct termios term;
+    struct termios default_term;
 
     /* Print out welcome message */
     printf("Welcome to Packet Information Chaining Service (pix)\n");
@@ -388,7 +401,19 @@ main(int argc, char *argv[])
     putchar('>');
     putchar(' ');
 
+    /* Disable cannonical mode */
+    tcgetattr(fileno(stdin), &term);
+    default_term = term;
+    term.c_lflag &= ~ICANON;
+    tcsetattr(fileno(stdin), TCSANOW, &term);
+
     while ( 1 ) {
+        int c;
+        c = fgetc(stdin);
+        if ( c ) {
+            putchar(c);
+        }
+        continue;
         if ( fgets(buf, sizeof(buf), stdin) ) {
 
             cmd = strtok_r(buf, "\n", &lasts);
@@ -399,6 +424,9 @@ main(int argc, char *argv[])
             } while  ( NULL != strtok_r(NULL, "\n", &lasts) );
         }
     }
+
+    /* Restore the terminal settings */
+    tcsetattr(fileno(stdin), TCSANOW, &default_term);
 
     exit(0);
 }

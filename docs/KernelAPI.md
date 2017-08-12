@@ -127,4 +127,12 @@ To get the current clock
 To fire interrupts
 * Local APIC timer
 
+### Interfaces
+* ksignal_
+  * ksignal_clock(): Clock interrupt
+  * ksignal_fpe(): Floating point exception
+  * ksignal_segv(): Segmentation fault
+  * ksignal_pf(): Page fault
+
+
 ## Inter-Process Communication

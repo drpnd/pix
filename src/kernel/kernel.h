@@ -33,6 +33,7 @@
 #include <time.h>
 #include <sys/pix.h>
 #include <mki/driver.h>
+#include <signal.h>
 
 /* Architecture-specific configuration */
 #if defined(ARCH_X86_64) && ARCH_X86_64
@@ -186,6 +187,16 @@
 #define EACCES                  13
 #define EFAULT                  14
 #define EINVAL                  22
+
+
+/* Page fault reason */
+#define PAGEFAULT_PRESENT       (1 << 0)
+#define PAGEFAULT_USER          (1 << 1)
+#define PAGEFAULT_INSTR         (1 << 2)
+#define PAGEFAULT_WRITE         (1 << 3)
+
+
+
 
 /*
  * String
@@ -553,6 +564,9 @@ struct proc {
     /* Tasks */
     struct ktask *tasks;
 
+    /* Signal info */
+    siginfo_t siginfo;
+
     /* User information */
     uid_t uid;
     gid_t gid;
@@ -796,6 +810,8 @@ char * kstrcpy(char *, const char *);
 char * kstrncpy(char *, const char *, size_t);
 size_t kstrlcpy(char *, const char *, size_t);
 char * kstrdup(const char *);
+void kirq_handler(u64);
+int ksignal_pf(struct ktask *, void *, void *, int);
 
 /* in strfmt.c */
 int kvsnprintf(char *, size_t, const char *, va_list);

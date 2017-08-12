@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015-2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2015-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -71,6 +71,7 @@ int fputs(const char *__restrict__, FILE *__restrict__);
 int fputc(int, FILE *);
 int putc(int, FILE *);
 int putchar(int);
+int fileno(FILE *);
 
 #endif /* _STDIO_H */
 

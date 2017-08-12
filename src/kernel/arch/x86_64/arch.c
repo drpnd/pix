@@ -843,6 +843,42 @@ arch_idle(void)
 }
 
 /*
+ * Interrupt handler
+ */
+void kintr_isr(u64);
+void
+arch_isr(u64 vec)
+{
+    switch ( vec ) {
+    case IV_IRQ(0):
+    case IV_IRQ(1):
+    case IV_IRQ(2):
+    case IV_IRQ(3):
+    case IV_IRQ(4):
+    case IV_IRQ(5):
+    case IV_IRQ(6):
+    case IV_IRQ(7):
+    case IV_IRQ(8):
+    case IV_IRQ(9):
+    case IV_IRQ(10):
+    case IV_IRQ(11):
+    case IV_IRQ(12):
+    case IV_IRQ(13):
+    case IV_IRQ(14):
+    case IV_IRQ(15):
+    case IV_IRQ(16):
+    case IV_IRQ(17):
+    case IV_IRQ(18):
+    case IV_IRQ(19):
+        /* IRQs */
+        kirq_handler(vec);
+        break;
+    default:
+        kintr_isr(vec);;
+    }
+}
+
+/*
  * Exception handler
  */
 void
@@ -916,24 +952,53 @@ isr_page_fault(void *addr, u64 error, void *rip, u64 cs, u64 flags, void *sp)
     u64 x = (u64)rip;
     u64 y = (u64)addr;
     struct ktask *t;
+    int reason;
+    int ret;
 
-    /* Get the current process */
-    t = this_ktask();
-    if ( NULL == t || NULL == t->proc ) {
-        ksnprintf(buf, sizeof(buf),
-                  "An unknown task causes page fault: %016llx @%016llx", y,
-                  x);
-        panic(buf);
-        return;
+    /* Flags to the reason */
+    reason = 0;
+    if ( error & 0x1 ) {
+        /* Present */
+        reason |= PAGEFAULT_PRESENT;
+    }
+    if ( error & 0x4 ) {
+        /* User process */
+        reason |= PAGEFAULT_USER;
+    }
+    if ( error & 0x2 ) {
+        /* Instruction */
+        reason |= PAGEFAULT_INSTR;
+    }
+    if ( error & 0x10 ) {
+        /* Write access */
+        reason |= PAGEFAULT_WRITE;
     }
 
-    ksnprintf(buf, sizeof(buf), "Page Fault %s (%c%c%c%c[%d]): %016x @%016x %d",
-              t->proc->name,
-              (error & 0x10) ? 'I' : 'D', (error & 0x4) ? 'U' : 'S',
-              (error & 0x2) ? 'W' : 'R', (error & 0x1) ? 'P' : '*',
-              error, y, x,
-              (NULL != t && NULL != t->proc) ? t->proc->id : -1);
-    panic(buf);
+    /* Call kernel's handler */
+    t = this_ktask();
+    ret = ksignal_pf(t, rip, addr, reason);
+
+    if ( 0 == (cs & 0x3) || ret < 0 ) {
+        /* Ring 0 */
+        /* Get the current process */
+        t = this_ktask();
+        if ( NULL == t || NULL == t->proc ) {
+            ksnprintf(buf, sizeof(buf),
+                      "An unknown task causes page fault: %016llx @%016llx", y,
+                      x);
+            panic(buf);
+            return;
+        }
+
+        ksnprintf(buf, sizeof(buf),
+                  "Page Fault %s (%c%c%c%c[%d]): %016x @%016x %d",
+                  t->proc->name,
+                  (error & 0x10) ? 'I' : 'D', (error & 0x4) ? 'U' : 'S',
+                  (error & 0x2) ? 'W' : 'R', (error & 0x1) ? 'P' : '*',
+                  error, y, x,
+                  (NULL != t && NULL != t->proc) ? t->proc->id : -1);
+        panic(buf);
+    }
 }
 
 /*

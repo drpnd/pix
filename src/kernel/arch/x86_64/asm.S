@@ -1040,7 +1040,45 @@ _intr_pf:
 	movq	%rax,%cr0
 	/* Call kernel function for ISR */
 	movq	$\vec,%rdi
-	callq	_kintr_isr
+	callq	_arch_isr
+	clts
+	/* EOI for the local APIC */
+	movq	$MSR_APIC_BASE,%rcx
+	rdmsr			/* Read APIC info to [%edx:%eax]; N.B., higer */
+				/*  32 bits of %rax and %rdx are cleared */
+				/*  bit [35:12]: APIC Base, [11]: EN */
+				/*  [10]: EXTD, and [8]:BSP */
+	shlq	$32,%rdx
+	addq	%rax,%rdx
+	andq	$0xfffffffffffff000,%rdx	/* APIC Base */
+	movl	$0,APIC_EOI(%rdx)	/* EOI */
+.endm
+
+/* macro to save registers to the stackframe and call the interrupt handler */
+.macro	intr_lapic_named_isr name
+	pushq	%rax
+	pushq	%rbx
+	pushq	%rcx
+	pushq	%rdx
+	pushq	%r8
+	pushq	%r9
+	pushq	%r10
+	pushq	%r11
+	pushq	%r12
+	pushq	%r13
+	pushq	%r14
+	pushq	%r15
+	pushq	%rsi
+	pushq	%rdi
+	pushq	%rbp
+	pushw	%fs
+	pushw	%gs
+	/* Set CR0.TS */
+	movq	%cr0,%rax
+	bts	$3,%rax
+	movq	%rax,%cr0
+	/* Call kernel function for ISR */
+	callq	_\name
 	clts
 	/* EOI for the local APIC */
 	movq	$MSR_APIC_BASE,%rcx
@@ -1085,7 +1123,7 @@ _intr_driver_\vec:
 
 /* Interrupt handler for local APIC timer */
 _intr_apic_loc_tmr:
-	intr_lapic_isr 0x40
+	intr_lapic_named_isr ksignal_clock
 	jmp	_task_restart
 
 /* Null interrupt handler (do nothing) */

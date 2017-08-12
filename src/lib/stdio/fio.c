@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2016-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -321,6 +321,15 @@ puts(const char *s)
     putchar('\n');
 
     return ret;
+}
+
+/*
+ * fileno
+ */
+int
+fileno(FILE *stream)
+{
+    return stream->fd;
 }
 
 /*

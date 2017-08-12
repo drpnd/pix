@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,12 +21,18 @@
  * SOFTWARE.
  */
 
-#ifndef _STDINT_H
-#define _STDINT_H
+#ifndef _SYS_IOCCOM_H
+#define _SYS_IOCCOM_H
 
-#include <aos/types.h>
+#define IOC_OUT         (__uint32_t)0x40000000
+#define IOC_IN          (__uint32_t)0x80000000
 
-#endif /* _SIGINT_H */
+#define _IOC(inout,group,num,len) \
+        (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
+#define _IOR(g,n,t)     _IOC(IOC_OUT,   (g), (n), sizeof(t))
+#define _IOW(g,n,t)     _IOC(IOC_IN,    (g), (n), sizeof(t))
+
+#endif /* _SYS_IOCCOM_H */
 
 /*
  * Local variables:

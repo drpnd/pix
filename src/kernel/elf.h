@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2015 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,12 +21,13 @@
  * SOFTWARE.
  */
 
-#ifndef _STDINT_H
-#define _STDINT_H
+#ifndef _KERNEL_ELF_H
+#define _KERNEL_ELF_H
 
-#include <aos/types.h>
+#include <aos/const.h>
+#include "elf.h"
 
-#endif /* _SIGINT_H */
+#endif /* _KERNEL_ELF_H */
 
 /*
  * Local variables:

@@ -259,7 +259,7 @@ _parse_dsdt(struct acpi *acpi, struct acpi_sdt_hdr *sdt)
         if ( len < 1 ) {
             return 1;
         }
-        acpi_slp_typa = (*addr) << 10;
+        acpi_slp_typa = ((u16)*addr) << 10;
         addr++;
         len--;
 
@@ -275,7 +275,7 @@ _parse_dsdt(struct acpi *acpi, struct acpi_sdt_hdr *sdt)
         if ( len < 1 ) {
             return 1;
         }
-        acpi_slp_typb = (*addr) << 10;
+        acpi_slp_typb = ((u16)*addr) << 10;
         addr++;
         len--;
 
