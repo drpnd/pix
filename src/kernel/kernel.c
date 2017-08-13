@@ -66,6 +66,7 @@ kinit(void)
     g_syscall_table[SYS_kill] = sys_kill;
     g_syscall_table[SYS_getppid] = sys_getppid;
     g_syscall_table[SYS_getgid] = sys_getgid;
+    g_syscall_table[SYS_ioctl] = sys_ioctl;
     g_syscall_table[SYS_reboot] = sys_reboot;
     g_syscall_table[SYS_execve] = sys_execve;
     g_syscall_table[SYS_mmap] = sys_mmap;

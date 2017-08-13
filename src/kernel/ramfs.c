@@ -45,6 +45,7 @@ static struct ramfs *ramfs;
 ssize_t ramfs_read(struct fildes *, void *, size_t);
 ssize_t ramfs_write(struct fildes *, const void *, size_t);
 off_t ramfs_lseek(struct fildes *, off_t, int);
+int ramfs_ioctl(struct fildes *, unsigned long, va_list);
 
 /*
  * Initialize ramfs
@@ -105,6 +106,7 @@ ramfs_open(const char *path)
     fildes->read = ramfs_read;
     fildes->write = ramfs_write;
     fildes->lseek = ramfs_lseek;
+    fildes->ioctl = ramfs_ioctl;
 
     return 0;
 }
@@ -135,6 +137,16 @@ ramfs_lseek(struct fildes *fildes, off_t offset, int whence)
 {
     return -1;
 }
+
+/*
+ * Ioctl
+ */
+int
+ramfs_ioctl(struct fildes *fildes, unsigned long request, va_list ap)
+{
+    return -1;
+}
+
 
 /*
  * Local variables:

@@ -151,6 +151,15 @@ devfs_lseek(struct fildes *fildes, off_t offset, int whence)
 }
 
 /*
+ * Ioctl
+ */
+int
+devfs_ioctl(struct fildes *fildes, unsigned long request, va_list ap)
+{
+    return -1;
+}
+
+/*
  * Local variables:
  * tab-width: 4
  * c-basic-offset: 4

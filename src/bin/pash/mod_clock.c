@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2016-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -170,7 +170,7 @@ pash_module_clock_help(struct pash *pash, char *args[])
 }
 
 int
-pash_module_clock_show(struct pash *pash, char *args[])
+pash_module_clock_get(struct pash *pash, char *args[])
 {
     struct timeval tv;
     struct tm tm;
@@ -195,7 +195,7 @@ static struct pash_module_api pash_module_clock_api = {
     .clear = NULL,
     .help = &pash_module_clock_help,
     .request = NULL,
-    .show = &pash_module_clock_show,
+    .get = &pash_module_clock_get,
 };
 
 

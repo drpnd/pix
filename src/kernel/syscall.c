@@ -366,6 +366,7 @@ sys_open(const char *path, int oflag, ...)
             fildes->read = devfs_read;
             fildes->write = devfs_write;
             fildes->lseek = devfs_lseek;
+            fildes->ioctl = devfs_ioctl;
 
             proc->fds[fd] = fildes;
 
@@ -971,7 +972,36 @@ sys_gettimeofday(struct timeval *__restrict__ tp, void *__restrict__ tzp)
 int
 sys_ioctl(int fildes, unsigned long request, ...)
 {
-    return -1;
+    struct ktask *t;
+    struct proc *proc;
+    va_list ap;
+    int ret;
+
+    /* Get the current process */
+    t = this_ktask();
+    if ( NULL == t ) {
+        return -1;
+    }
+    proc = t->proc;
+    if ( NULL == proc ) {
+        return -1;
+    }
+
+    /* Check the file descriptor number */
+    if ( fildes < 0 || fildes >= FD_MAX ) {
+        return -1;
+    }
+
+    if ( NULL == proc->fds[fildes] ) {
+        /* Invalid file descriptor (not opened) */
+        return -1;
+    }
+
+    va_start(ap, request);
+    ret = proc->fds[fildes]->ioctl(proc->fds[fildes], request, ap);
+    va_end(ap);
+
+    return ret;
 }
 
 /*

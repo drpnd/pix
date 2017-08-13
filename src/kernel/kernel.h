@@ -195,7 +195,12 @@
 #define PAGEFAULT_INSTR         (1 << 2)
 #define PAGEFAULT_WRITE         (1 << 3)
 
-
+typedef __builtin_va_list va_list;
+#define va_start(ap, last)      __builtin_va_start((ap), (last))
+#define va_arg                  __builtin_va_arg
+#define va_end(ap)              __builtin_va_end(ap)
+#define va_copy(dest, src)      __builtin_va_copy((dest), (src))
+#define alloca(size)            __builtin_alloca((size))
 
 
 /*
@@ -211,9 +216,9 @@ struct kstring {
  */
 struct fildes;
 struct vfs_interface {
-    ssize_t (*read)(struct fildes *, void *, size_t);
-    ssize_t (*write)(struct fildes *, const void *, size_t);
-    off_t (*lseek)(struct fildes *, off_t, int);
+    //ssize_t (*read)(struct fildes *, void *, size_t);
+    //ssize_t (*write)(struct fildes *, const void *, size_t);
+    //off_t (*lseek)(struct fildes *, off_t, int);
 };
 
 struct fildes_proc {
@@ -245,6 +250,7 @@ struct fildes {
     ssize_t (*read)(struct fildes *, void *, size_t);
     ssize_t (*write)(struct fildes *, const void *, size_t);
     off_t (*lseek)(struct fildes *, off_t, int);
+    int (*ioctl)(struct fildes *, unsigned long, va_list);
 
     /* Blocking tasks */
     struct ktask_list_entry *blocking_tasks;
@@ -870,6 +876,7 @@ int ramfs_init(u64 *);
 ssize_t devfs_read(struct fildes *, void *, size_t);
 ssize_t devfs_write(struct fildes *, const void *, size_t);
 off_t devfs_lseek(struct fildes *, off_t, int);
+int devfs_ioctl(struct fildes *, unsigned long, va_list);
 
 /* in syscall.c */
 void sys_exit(int);
@@ -883,6 +890,7 @@ uid_t sys_getuid(void);
 int sys_kill(pid_t, int);
 pid_t sys_getppid(void);
 gid_t sys_getgid(void);
+int sys_ioctl(int, unsigned long, ...);
 int sys_reboot(int);
 int sys_execve(const char *, char *const [], char *const []);
 void * sys_mmap(void *, size_t, int, int, int, off_t);

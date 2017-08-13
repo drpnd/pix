@@ -22,17 +22,24 @@
  */
 
 #include <termios.h>
+#include <sys/ioctl.h>
+#include <sys/ttycom.h>
 
 int
 tcgetattr(int fildes, struct termios *termios_p)
 {
-    return 0;
+    return ioctl(fildes, TIOCGETA, termios_p);
 }
 
 int
 tcsetattr(int fildes, int optional_actions, const struct termios *termios_p)
 {
-    return 0;
+    /* Currently assume TCSANOW optional_actions */
+    if ( TCSANOW != optional_actions ) {
+        return -1;
+    }
+
+    return ioctl(fildes, TIOCSETA, termios_p);
 }
 
 

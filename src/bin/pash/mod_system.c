@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2016-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -54,7 +54,7 @@ pash_module_system_request(struct pash *pash, char *args[])
 }
 
 int
-pash_module_system_show(struct pash *pash, char *args[])
+pash_module_system_get(struct pash *pash, char *args[])
 {
     printf("Displaying the running system information \n");
     printf("pix version: %s\n", PIX_VERSION);
@@ -67,7 +67,7 @@ static struct pash_module_api pash_module_system_api = {
     .clear = NULL,
     .help = &pash_module_system_help,
     .request = &pash_module_system_request,
-    .show = &pash_module_system_show,
+    .get = &pash_module_system_get,
 };
 
 

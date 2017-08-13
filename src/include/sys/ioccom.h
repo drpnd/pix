@@ -24,8 +24,16 @@
 #ifndef _SYS_IOCCOM_H
 #define _SYS_IOCCOM_H
 
-#define IOC_OUT         (__uint32_t)0x40000000
-#define IOC_IN          (__uint32_t)0x80000000
+#include <stdint.h>
+
+#define IOCPARM_SHIFT   13              /* number of bits for ioctl size */
+#define IOCPARM_MASK    ((1 << IOCPARM_SHIFT) - 1) /* parameter length mask */
+#define IOCPARM_LEN(x)  (((x) >> 16) & IOCPARM_MASK)
+#define IOCBASECMD(x)   ((x) & ~(IOCPARM_MASK << 16))
+#define IOCGROUP(x)     (((x) >> 8) & 0xff)
+
+#define IOC_OUT         (uint32_t)0x40000000
+#define IOC_IN          (uint32_t)0x80000000
 
 #define _IOC(inout,group,num,len) \
         (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
