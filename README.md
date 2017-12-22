@@ -1,4 +1,4 @@
-# pix: Packet-based Information Chaining Service
+# pix: Programmable Information Chaining Service
 
 ## About
 We are developing an operating system for networking, called pix, as a fast
