@@ -250,7 +250,7 @@ struct fildes {
     ssize_t (*read)(struct fildes *, void *, size_t);
     ssize_t (*write)(struct fildes *, const void *, size_t);
     off_t (*lseek)(struct fildes *, off_t, int);
-    int (*ioctl)(struct fildes *, unsigned long, va_list);
+    int (*ioctl)(struct fildes *, unsigned long, int, void **);
 
     /* Blocking tasks */
     struct ktask_list_entry *blocking_tasks;
@@ -876,7 +876,7 @@ int ramfs_init(u64 *);
 ssize_t devfs_read(struct fildes *, void *, size_t);
 ssize_t devfs_write(struct fildes *, const void *, size_t);
 off_t devfs_lseek(struct fildes *, off_t, int);
-int devfs_ioctl(struct fildes *, unsigned long, va_list);
+int devfs_ioctl(struct fildes *, unsigned long, int, void **);
 
 /* in syscall.c */
 void sys_exit(int);

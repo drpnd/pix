@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2016-2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,6 +22,7 @@
  */
 
 #include <aos/const.h>
+#include <termios.h>
 #include "kernel.h"
 
 void
@@ -154,9 +155,65 @@ devfs_lseek(struct fildes *fildes, off_t offset, int whence)
  * Ioctl
  */
 int
-devfs_ioctl(struct fildes *fildes, unsigned long request, va_list ap)
+devfs_ioctl(struct fildes *fildes, unsigned long request, int narg, void **args)
 {
-    return -1;
+    struct ktask *t;
+    struct devfs_entry *ent;
+    int ret;
+    struct ktask *tmp;
+    struct ktask_list_entry *tle;
+    int loop;
+
+    /* Get the current process */
+    t = this_ktask();
+    if ( NULL == t ) {
+        return -1;
+    }
+
+    /* Obtain the file-system-specific data structure */
+    ent = (struct devfs_entry *)fildes->data;
+
+    /* Send an ioctl request */
+    driver_ioctl_send(ent->mapped, request, narg, args);
+
+    /* Wake up the driver */
+    tmp = ent->proc->tasks;
+    while ( NULL != tmp ) {
+        tmp->state = KTASK_STATE_READY;
+        tmp = tmp->next;
+    }
+
+    loop = 0;
+    while ( 0 == driver_ioctl_status(ent->mapped) ) {
+        loop++;
+        if ( loop > 3 ) {
+            /* Timeout */
+            return -1;
+        }
+
+        /* The ioctl() is still under processing, then add this task to the
+           blocking task list for this file descriptor and switch to another
+           task. */
+        tle = kmalloc(sizeof(struct ktask_list_entry));
+        if ( NULL == tle ) {
+            return -1;
+        }
+        tle->ktask = t;
+        tle->next = fildes->blocking_tasks;
+        fildes->blocking_tasks = tle;
+
+        /* Buffer is empty, then block this process */
+        t->state = KTASK_STATE_BLOCKED;
+
+        /* Switch this task to another */
+        sys_task_switch();
+        /* Will resume from here */
+    }
+
+    /* Get the response to the ioctl request */
+    ret = driver_ioctl_recv(ent->mapped, request, narg, args);
+
+    return ret;
 }
 
 /*

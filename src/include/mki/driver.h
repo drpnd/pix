@@ -1,5 +1,5 @@
 /*_
- * Copyright (c) 2016 Hirochika Asai <asai@jar.jp>
+ * Copyright (c) 2017 Hirochika Asai <asai@jar.jp>
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -88,6 +88,12 @@ struct driver_mapped_device {
         struct driver_mapped_device_blk blk;
     } dev;
     void *file;
+
+    /* ioctl message */
+    struct {
+        int ret;
+        unsigned long request;
+    } ioctl;
 };
 
 int driver_register_irq_handler(int, void *);
@@ -252,6 +258,25 @@ driver_chr_obuf_available(struct driver_mapped_device *dev)
         return 1;
     }
 }
+
+static __inline__ int
+driver_ioctl_status(struct driver_mapped_device *dev)
+{
+    return 0;
+}
+static __inline__ void
+driver_ioctl_send(struct driver_mapped_device *dev, unsigned long request,
+                  int narg, void **args)
+{
+}
+
+static __inline__ int
+driver_ioctl_recv(struct driver_mapped_device *dev, unsigned long request,
+                  int narg, void **args)
+{
+    return 0;
+}
+
 
 #endif /* _MKI_DRIVER_H */
 

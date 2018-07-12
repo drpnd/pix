@@ -136,3 +136,5 @@ To fire interrupts
 
 
 ## Inter-Process Communication
+* Asynchronous
+* Synchronous

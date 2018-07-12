@@ -27,6 +27,8 @@
 #include <sys/reboot.h>
 #include <time.h>
 #include <machine/sysarch.h>
+#include <termios.h>
+#include <sys/ttycom.h>
 #include <mki/driver.h>
 #include "kernel.h"
 
@@ -975,7 +977,8 @@ sys_ioctl(int fildes, unsigned long request, ...)
     struct ktask *t;
     struct proc *proc;
     va_list ap;
-    int ret;
+    int nargs;
+    void *args[8];
 
     /* Get the current process */
     t = this_ktask();
@@ -997,11 +1000,22 @@ sys_ioctl(int fildes, unsigned long request, ...)
         return -1;
     }
 
-    va_start(ap, request);
-    ret = proc->fds[fildes]->ioctl(proc->fds[fildes], request, ap);
-    va_end(ap);
+    /* Reorganize the arguments */
+    nargs = 0;
+    switch ( request ) {
+    case TIOCGETA:
+    case TIOCSETA:
+        /* Pointer argument */
+        nargs = 1;
+        va_start(ap, request);
+        args[0] = va_arg(ap, void *);
+        va_end(ap);
+        break;
+    default:
+        return -1;
+    }
 
-    return ret;
+    return proc->fds[fildes]->ioctl(proc->fds[fildes], request, nargs, args);
 }
 
 /*
@@ -1089,11 +1103,11 @@ _debug_scheduler(u16 *video)
 {
     ssize_t i;
     struct ktask_list *l;
+    char buf[512];
 
     /* Display scheduler information */
     l = g_ktask_root->r.head;
     while ( NULL != l ) {
-        char buf[512];
         ksnprintf(buf, 512, "%x: %s (%d) -> %x ",
                   l->ktask->proc->tasks,
                   l->ktask->proc->name,

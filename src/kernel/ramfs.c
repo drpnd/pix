@@ -45,7 +45,7 @@ static struct ramfs *ramfs;
 ssize_t ramfs_read(struct fildes *, void *, size_t);
 ssize_t ramfs_write(struct fildes *, const void *, size_t);
 off_t ramfs_lseek(struct fildes *, off_t, int);
-int ramfs_ioctl(struct fildes *, unsigned long, va_list);
+int ramfs_ioctl(struct fildes *, unsigned long, int, void **);
 
 /*
  * Initialize ramfs
@@ -142,7 +142,8 @@ ramfs_lseek(struct fildes *fildes, off_t offset, int whence)
  * Ioctl
  */
 int
-ramfs_ioctl(struct fildes *fildes, unsigned long request, va_list ap)
+ramfs_ioctl(struct fildes *fildes, unsigned long request, int nargs,
+            void **args)
 {
     return -1;
 }
