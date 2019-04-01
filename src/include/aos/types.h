@@ -45,6 +45,9 @@ typedef signed short int16_t;
 typedef signed int int32_t;
 typedef signed long long int int64_t;
 
+/* Pointer */
+typedef uint64_t uintptr_t;
+
 #else
 #error "Must be LP64"
 #endif
